@@ -1,67 +1,96 @@
-# Universal Apps by Harsh
+# Universal Apps by Harsh 🚀
 
-A sleek, modern, and intuitive desktop application featuring a collection of essential calculators. Built for speed and simplicity using Next.js and Tauri.
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Tauri](https://img.shields.io/badge/Tauri-2.0-blue?style=for-the-badge&logo=tauri)](https://tauri.app/)
+[![Rust](https://img.shields.io/badge/Rust-1.80+-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 
-## 🚀 Features
+A premium, all-in-one desktop toolkit designed for professionals, students, and power users. Featuring 50+ high-performance tools ranging from advanced financial calculators to privacy-focused dev utilities, all wrapped in a stunning glassmorphic UI.
 
-- **GST Calculator**: Quickly calculate Goods and Services Tax with customizable rates.
-- **Marks Calculator**: Easily compute total marks and overall percentage for academic assessments.
-- **Percentage Calculator**: Perform various percentage-based calculations with precision.
-- **QR Generator**: Instantly generate high-quality QR codes for URLs, text, and more.
+---
 
-## 🛠️ Built With
+## 💎 Premium Features
 
-- **Next.js**: React framework for the frontend.
-- **Tauri**: Framework for building tiny, fast binaries for all major desktop platforms.
-- **Tailwind CSS**: Utility-first CSS framework for styling.
-- **Lucide React**: Beautiful & consistent icons.
-- **Framer Motion**: Production-ready motion library for animations.
-- **Shadcn UI**: High-quality UI components.
+### 🛡️ Privacy & Stealth Suite
+*   **Deep File Steganography**: Hide any file (ZIP, EXE, PDF) inside an image invisibly.
+*   **EXIF Metadata Stripper**: Purge GPS and camera tracking data from your photos.
+*   **Zero-Knowledge Shredder**: Encrypt sensitive notes with AES-256 local security.
+*   **Private Password Vault**: Local-only encrypted storage for your sensitive logins with backup/restore support.
+*   **Emoji Cipher**: Hide messages inside random emojis for secure sharing.
+*   **Image Camouflage**: Blur or pixelate faces and sensitive text in screenshots.
 
-## 📦 Installation
+### 📐 Advanced Mathematics & Science
+*   **Calculus Studio**: Numerical integration and differentiation with dynamic graphing.
+*   **Graphing Calculator Pro**: High-precision function plotter with multi-curve support.
+*   **Number Theory Lab**: Step-by-step primes, GCD/LCM, and factorization trees.
+*   **Linear Algebra Pro**: Eigenvalues, SVD, and vector space transformations.
+*   **Periodic Table Pro**: Interactive chemistry suite with element data and lab tools.
+*   **Boolean Logic Lab**: K-Map solver, truth tables, and logic gate simulations.
+
+### 💰 Finance & Wealth Management
+*   **Tax India (Old vs New)**: Side-by-side comparison of Indian tax regimes.
+*   **FIRE Calculator**: Plan your early retirement and financial freedom.
+*   **Step-up SIP**: Calculate wealth generation with annual contribution increases.
+*   **Compound Interest**: Advanced wealth projection with multiple frequencies.
+*   **Loan Comparison**: Real-time side-by-side analyzer for EMIs.
+
+### 💻 Developer Utilities
+*   **Text Pro Utilities**: Professional formatting, counting, and cleaning tools.
+*   **JSON Formatter & Converter**: Industrial-grade validation and conversion (JSON to TS, etc.).
+*   **JWT Decoder**: Securely decode JSON Web Tokens on the client side.
+*   **Code Snippet Maker**: Create beautiful macOS-style code screenshots.
+*   **Regex Tester**: Test regular expressions with live match highlighting.
+
+---
+
+## 🛠️ Technology Stack
+
+*   **Frontend**: Next.js 15 (App Router), React 19
+*   **Desktop Engine**: Tauri 2.0 (Rust)
+*   **Styling**: Tailwind CSS, Framer Motion (Animations)
+*   **UI Components**: Shadcn UI (Radix UI)
+*   **Icons**: Lucide React
+*   **Storage**: IndexedDB / LocalStorage (Zero-server, local-only privacy)
+
+---
+
+## 📦 Setup & Installation
 
 ### Prerequisites
+*   [Node.js](https://nodejs.org/) (v20+ recommended)
+*   [Rust & Cargo](https://www.rust-lang.org/tools/install)
+*   **Windows Users**: [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) and [Wix Toolset v4](https://wixtoolset.org/) (for building installers).
 
-Before you begin, ensure you have the following installed:
-- [Node.js](https://nodejs.org/) (v18 or later)
-- [Rust](https://www.rust-lang.org/tools/install)
-- [Wix Toolset](https://wixtoolset.org/releases/) (Required for generating MSI installers on Windows)
-- [.NET SDK](https://dotnet.microsoft.com/download) (Required by Wix Toolset v4)
-
-### Development
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/HrshD1eux/Universal_apps.git
-   cd "Universal Apps by Harsh"
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm run tauri dev
-   ```
+### Development Environment
+1.  **Clone & Install**:
+    ```bash
+    git clone https://github.com/HrshD1eux/Universal_apps.git
+    cd Universal_apps
+    npm install
+    ```
+2.  **Launch Developer Mode**:
+    ```bash
+    npm run tauri dev
+    ```
 
 ### Production Build
-
-To generate a production-ready installer (MSI/EXE):
-
+To generate a tiny, optimized native installer for your OS:
 ```bash
 npm run tauri build
 ```
+The binary will be located in `src-tauri/target/release/bundle/`.
 
-The generated installers will be located in:
-- `src-tauri/target/release/bundle/msi/` (MSI)
-- `src-tauri/target/release/bundle/nsis/` (EXE)
+---
+
+## 🎨 Design Philosophy
+*   **Performance First**: Sub-millisecond calculation times.
+*   **Local-Only Privacy**: Your data never leaves your machine. No servers, no tracking.
+*   **Aesthetic Excellence**: Vibrant gradients, smooth 60fps animations, and intuitive layouts.
+
+---
 
 ## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+Found a bug or want to suggest a tool? Open an issue or submit a PR.
 
 ## 📄 License
-
-This project is licensed under the MIT License.
+MIT License. Built with ❤️ by **Harsh**.
