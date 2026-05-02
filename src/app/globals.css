@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.prose {
+  @apply text-sm leading-relaxed;
+}
+.prose h1 { @apply text-3xl font-black mb-6 pb-2 border-b; }
+.prose h2 { @apply text-2xl font-black mt-8 mb-4 pb-1 border-b; }
+.prose h3 { @apply text-xl font-bold mt-6 mb-2; }
+.prose p { @apply mb-4; }
+.prose ul { @apply list-disc pl-6 mb-4; }
+.prose ol { @apply list-decimal pl-6 mb-4; }
+.prose code { @apply bg-muted px-1.5 py-0.5 rounded font-mono text-xs; }
+.prose pre { @apply bg-muted/50 p-4 rounded-xl border font-mono text-xs overflow-x-auto mb-4; }
+.prose blockquote { @apply border-l-4 border-primary/20 pl-4 italic text-muted-foreground; }
+.prose table { @apply w-full border-collapse mb-4; }
+.prose th, .prose td { @apply border p-2 text-left; }
+.prose th { @apply bg-muted/50 font-bold; }
+
+/* Professional Prose */
+.prose-colorful h1 { @apply text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-800; }
+.prose-colorful h2 { @apply text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-800; }
+.prose-colorful h3 { @apply text-slate-700 dark:text-slate-300; }
+.prose-colorful strong { @apply text-slate-900 dark:text-white font-bold; }
+.prose-colorful a { @apply text-primary underline decoration-1 underline-offset-4 font-medium; }
+.prose-colorful code { @apply bg-muted text-slate-900 dark:text-slate-100 border; }
+.prose-colorful blockquote { @apply border-primary/40 bg-muted/30 p-4 rounded-r-xl; }
+.prose-colorful li::marker { @apply text-primary; }
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 45 93% 47%; /* Darker Amber for light mode */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 45 93% 47%;
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 6%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 45 93% 61%; /* Brighter Amber for dark mode */
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 45 93% 61%;
+  }
+
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground transition-colors duration-500;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-background/60 backdrop-blur-xl border border-white/20 shadow-xl;
+  }
+  .dark .glass-panel {
+    @apply bg-card/60 backdrop-blur-xl border-white/5 shadow-2xl;
+  }
+  .premium-shadow {
+    @apply shadow-[0_20px_50px_rgba(0,0,0,0.05)];
+  }
+  .dark .premium-shadow {
+    @apply shadow-[0_20px_50px_rgba(0,0,0,0.3)];
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.2);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.4);
+}
+
+/* Theme Overrides */
+:root.theme-blue { --primary: 221.2 83.2% 53.3% !important; --ring: 221.2 83.2% 53.3% !important; }
+.dark.theme-blue { --primary: 217.2 91.2% 59.8% !important; --ring: 217.2 91.2% 59.8% !important; }
+
+:root.theme-green { --primary: 142.1 76.2% 36.3% !important; --ring: 142.1 76.2% 36.3% !important; }
+.dark.theme-green { --primary: 142.1 70.6% 45.3% !important; --ring: 142.1 70.6% 45.3% !important; }
+
+:root.theme-purple { --primary: 262.1 83.3% 57.8% !important; --ring: 262.1 83.3% 57.8% !important; }
+.dark.theme-purple { --primary: 263.4 70% 50.4% !important; --ring: 263.4 70% 50.4% !important; }
+
+:root.theme-rose { --primary: 346.8 77.2% 49.8% !important; --ring: 346.8 77.2% 49.8% !important; }
+.dark.theme-rose { --primary: 346.8 87.2% 56.5% !important; --ring: 346.8 87.2% 56.5% !important; }
