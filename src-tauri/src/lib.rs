@@ -1,4 +1,5 @@
 mod calculator_commands;
+mod vault_commands;
 
 use std::fs::OpenOptions;
 use std::io::Write;
@@ -122,7 +123,10 @@ pub fn run() {
             calculator_commands::calculate_income_tax_india,
             calculator_commands::calculate_fire_projection,
             calculator_commands::calculate_stock_average,
-            calculator_commands::calculate_function_samples
+            calculator_commands::calculate_function_samples,
+            vault_commands::is_master_password_set,
+            vault_commands::set_master_password,
+            vault_commands::verify_master_password
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

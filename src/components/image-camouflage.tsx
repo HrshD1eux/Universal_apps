@@ -51,24 +51,35 @@ export default function ImageCamouflage() {
   };
 
   const applyEffect = (ctx: CanvasRenderingContext2D, r: Rect) => {
+    // Prevent InvalidStateError if rectangle has 0 width or height (e.g. during initial drag)
+    if (Math.abs(r.w) < 1 || Math.abs(r.h) < 1) return;
+
+    const w = Math.abs(r.w);
+    const h = Math.abs(r.h);
+    const x = r.w < 0 ? r.x + r.w : r.x;
+    const y = r.h < 0 ? r.y + r.h : r.y;
+
     if (r.type === 'blur') {
       ctx.save();
       ctx.filter = 'blur(10px)';
-      ctx.drawImage(ctx.canvas, r.x, r.y, r.w, r.h, r.x, r.y, r.w, r.h);
+      ctx.drawImage(ctx.canvas, x, y, w, h, x, y, w, h);
       ctx.restore();
     } else {
       const size = 15;
-      const w = r.w;
-      const h = r.h;
       const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = w / size;
-      tempCanvas.height = h / size;
+      tempCanvas.width = Math.max(1, Math.ceil(w / size));
+      tempCanvas.height = Math.max(1, Math.ceil(h / size));
       const tCtx = tempCanvas.getContext('2d')!;
       tCtx.imageSmoothingEnabled = false;
-      tCtx.drawImage(ctx.canvas, r.x, r.y, r.w, r.h, 0, 0, tempCanvas.width, tempCanvas.height);
+      
+      // Draw small
+      tCtx.drawImage(ctx.canvas, x, y, w, h, 0, 0, tempCanvas.width, tempCanvas.height);
+      
+      // Draw back big
+      ctx.save();
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, r.x, r.y, r.w, r.h);
-      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, x, y, w, h);
+      ctx.restore();
     }
     // Draw boundary
     ctx.strokeStyle = '#06b6d4';

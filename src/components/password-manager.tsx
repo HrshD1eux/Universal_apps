@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 import { useToast } from '@/hooks/use-toast';
+import { vaultAuth, isTauri, copyToClipboard } from '@/lib/tauri-utils';
 
 interface Account {
   id: string;
@@ -33,6 +34,48 @@ export default function PasswordVault() {
   
   const { t } = useLanguage();
   const { toast } = useToast();
+
+  const [hasMasterPass, setHasMasterPass] = useState<boolean | null>(null);
+  const [isSettingUp, setIsSettingUp] = useState(false);
+  const [setupPass, setSetupPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (isTauri()) {
+        const isSet = await vaultAuth.isSet();
+        setHasMasterPass(isSet);
+        if (!isSet) setIsSettingUp(true);
+      } else {
+        // Fallback for web: check if data exists
+        setHasMasterPass(localStorage.getItem('vault_data') !== null);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleSetup = async () => {
+    if (setupPass !== confirmPass) {
+      toast({ title: "Passwords Mismatch", variant: "destructive" });
+      return;
+    }
+    if (setupPass.length < 4) {
+      toast({ title: "Too Weak", description: "Password must be at least 4 characters.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      await vaultAuth.set(setupPass);
+      setHasMasterPass(true);
+      setIsSettingUp(false);
+      setMasterPass(setupPass);
+      setAccounts([]);
+      setIsLocked(false);
+      toast({ title: "Security Locked", description: "Master password set successfully." });
+    } catch (e: any) {
+      toast({ title: "Setup Failed", description: e.message, variant: "destructive" });
+    }
+  };
 
   // AES-GCM Key Derivation
   const deriveKey = async (password: string, salt: Uint8Array) => {
@@ -74,10 +117,19 @@ export default function PasswordVault() {
   };
 
   const handleUnlock = async () => {
+    if (isTauri()) {
+      const isValid = await vaultAuth.verify(masterPass);
+      if (!isValid) {
+        toast({ title: "Access Denied", description: "Invalid master password.", variant: "destructive" });
+        return;
+      }
+    }
+
     const stored = localStorage.getItem('vault_data');
     if (!stored) {
       setAccounts([]);
       setIsLocked(false);
+      toast({ title: "Vault Initialized", description: "Starting with a fresh secure storage." });
       return;
     }
     try {
@@ -86,7 +138,7 @@ export default function PasswordVault() {
       setIsLocked(false);
       toast({ title: "Vault Unlocked", description: "Access granted to secure storage." });
     } catch (e) {
-      toast({ title: "Access Denied", variant: "destructive" });
+      toast({ title: "Decryption Failed", description: "Could not read vault data with this key.", variant: "destructive" });
     }
   };
 
@@ -176,7 +228,40 @@ export default function PasswordVault() {
 
         <CardContent className="p-8">
            <AnimatePresence mode="wait">
-              {isLocked ? (
+               {isSettingUp ? (
+                 <motion.div key="setup" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md mx-auto py-20 space-y-8">
+                    <div className="text-center space-y-4">
+                       <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <ShieldCheck className="w-10 h-10 text-emerald-500" />
+                       </div>
+                       <h3 className="text-2xl font-black uppercase tracking-tighter italic">Create Master Key</h3>
+                       <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
+                          This password will be locked in the desktop core. <br/>
+                          <span className="text-rose-500">It cannot be changed once created.</span>
+                       </p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                       <Input 
+                         type="password" 
+                         value={setupPass} 
+                         onChange={(e) => setSetupPass(e.target.value)} 
+                         className="h-16 rounded-2xl border-2 text-center text-xl font-black focus:ring-emerald-500"
+                         placeholder="Create Password"
+                       />
+                       <Input 
+                         type="password" 
+                         value={confirmPass} 
+                         onChange={(e) => setConfirmPass(e.target.value)} 
+                         className="h-16 rounded-2xl border-2 text-center text-xl font-black focus:ring-emerald-500"
+                         placeholder="Confirm Password"
+                       />
+                       <Button onClick={handleSetup} className="w-full h-16 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg shadow-xl shadow-emerald-500/20">
+                          INITIALIZE SECURE VAULT
+                       </Button>
+                    </div>
+                 </motion.div>
+               ) : isLocked ? (
                  <motion.div key="lock" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md mx-auto py-20 space-y-8">
                     <div className="text-center space-y-4">
                        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -278,9 +363,12 @@ export default function PasswordVault() {
                                          {showPass[acc.id] ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                                       </Button>
                                    </div>
-                                   <Button variant="ghost" size="icon" onClick={() => { navigator.clipboard.writeText(acc.pass); toast({ title: "Password Copied" }); }} className="h-10 w-10 text-primary rounded-xl hover:bg-primary/10">
-                                      <Copy className="w-4 h-4" />
-                                   </Button>
+                                    <Button variant="ghost" size="icon" onClick={async () => { 
+                                       const success = await copyToClipboard(acc.pass);
+                                       if (success) toast({ title: "Password Copied" }); 
+                                    }} className="h-10 w-10 text-primary rounded-xl hover:bg-primary/10">
+                                       <Copy className="w-4 h-4" />
+                                    </Button>
                                    <Button variant="ghost" size="icon" onClick={() => deleteAccount(acc.id)} className="h-10 w-10 text-rose-500 rounded-xl hover:bg-rose-50">
                                       <Trash2 className="w-4 h-4" />
                                    </Button>

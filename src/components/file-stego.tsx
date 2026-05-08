@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 import { useToast } from '@/hooks/use-toast';
+import { isTauri } from '@/lib/tauri-utils';
 
 export default function DeepFileStego() {
   const [activeTab, setActiveTab] = useState<'hide' | 'reveal'>('hide');
@@ -23,12 +24,58 @@ export default function DeepFileStego() {
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const handleHostSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) setHostImage(e.target.files[0]);
+  const handleHostSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const buffer = await file.arrayBuffer();
+      setHostImage(new File([buffer], file.name, { type: file.type }));
+    } catch (err) {
+      toast({ title: "Read Error", description: "Could not read image into memory.", variant: "destructive" });
+    }
   };
 
-  const handleSecretSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) setSecretFile(e.target.files[0]);
+  const handleSecretSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const buffer = await file.arrayBuffer();
+      setSecretFile(new File([buffer], file.name, { type: file.type }));
+    } catch (err) {
+      toast({ title: "Read Error", description: "Could not read file into memory.", variant: "destructive" });
+    }
+  };
+
+  const handleTauriHostSelect = async () => {
+    if (!isTauri()) return;
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const { readFile } = await import('@tauri-apps/plugin-fs');
+      const selected = await open({ multiple: false, filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }] });
+      if (selected && typeof selected === 'string') {
+        const bytes = await readFile(selected);
+        const name = selected.split(/[\\/]/).pop() || 'image.png';
+        setHostImage(new File([bytes], name, { type: 'image/png' }));
+      }
+    } catch (err: any) {
+      toast({ title: "Selection Error", description: err.toString(), variant: "destructive" });
+    }
+  };
+
+  const handleTauriSecretSelect = async () => {
+    if (!isTauri()) return;
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const { readFile } = await import('@tauri-apps/plugin-fs');
+      const selected = await open({ multiple: false });
+      if (selected && typeof selected === 'string') {
+        const bytes = await readFile(selected);
+        const name = selected.split(/[\\/]/).pop() || 'secret.bin';
+        setSecretFile(new File([bytes], name, { type: 'application/octet-stream' }));
+      }
+    } catch (err: any) {
+      toast({ title: "Selection Error", description: err.toString(), variant: "destructive" });
+    }
   };
 
   const processHide = async () => {
@@ -91,10 +138,17 @@ export default function DeepFileStego() {
 
       ctx.putImageData(imageData, 0, 0);
       
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) throw new Error("Failed to create result image.");
+
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.download = `stego_${hostImage.name.split('.')[0]}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = url;
       link.click();
+      
+      // Revoke after a delay to ensure download starts
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
       
       toast({ title: "Stealth Success", description: "Your secret file is now part of the image." });
     } catch (e: any) {
@@ -112,14 +166,21 @@ export default function DeepFileStego() {
 
     try {
       const img = new Image();
-      img.src = URL.createObjectURL(hostImage);
-      await new Promise(resolve => img.onload = resolve);
+      const objectUrl = URL.createObjectURL(hostImage);
+      img.src = objectUrl;
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error("Failed to load image for extraction. Ensure it is a valid image file."));
+      });
 
       const canvas = canvasRef.current!;
-      const ctx = canvas.getContext('2d')!;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
+      
+      URL.revokeObjectURL(objectUrl);
 
       const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
       
@@ -147,9 +208,11 @@ export default function DeepFileStego() {
       };
 
       // Check Magic
-      const magic = getBytes(4);
-      if (new TextDecoder().decode(magic) !== 'STGO') {
-        throw new Error("No hidden data found in this image!");
+      const magicBytes = getBytes(4);
+      const magic = new TextDecoder().decode(magicBytes);
+      if (magic !== 'STGO') {
+        console.error("Magic mismatch:", magic, magicBytes);
+        throw new Error("No hidden data found! Ensure you are using a PNG image saved by this tool.");
       }
 
       const nameLen = getBytes(1)[0];
@@ -205,7 +268,18 @@ export default function DeepFileStego() {
                        <div className="space-y-4">
                           <label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Host Image (Carrier)</label>
                           <div className="relative group h-48 border-4 border-dashed border-primary/10 rounded-[2.5rem] flex flex-col items-center justify-center hover:bg-primary/5 transition-all">
-                             <input type="file" accept="image/*" onChange={handleHostSelect} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                             <input 
+                                type="file" 
+                                accept="image/*" 
+                                onChange={handleHostSelect} 
+                                onClick={(e) => {
+                                  if (isTauri()) {
+                                    e.preventDefault();
+                                    handleTauriHostSelect();
+                                  }
+                                }}
+                                className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                              />
                              {hostImage ? (
                                 <div className="text-center px-4">
                                    <ImageIcon className="w-8 h-8 text-primary mx-auto mb-2" />
@@ -223,7 +297,17 @@ export default function DeepFileStego() {
                        <div className="space-y-4">
                           <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500 ml-1">Secret File (ZIP, EXE, etc)</label>
                           <div className="relative group h-48 border-4 border-dashed border-indigo-500/10 rounded-[2.5rem] flex flex-col items-center justify-center hover:bg-indigo-500/5 transition-all">
-                             <input type="file" onChange={handleSecretSelect} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                             <input 
+                                type="file" 
+                                onChange={handleSecretSelect} 
+                                onClick={(e) => {
+                                  if (isTauri()) {
+                                    e.preventDefault();
+                                    handleTauriSecretSelect();
+                                  }
+                                }}
+                                className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                              />
                              {secretFile ? (
                                 <div className="text-center px-4">
                                    <FileArchive className="w-8 h-8 text-indigo-500 mx-auto mb-2" />
@@ -275,7 +359,18 @@ export default function DeepFileStego() {
                     <div className="max-w-md mx-auto space-y-6">
                        <label className="text-[10px] font-black uppercase tracking-widest text-primary ml-4">Select Stego-Image</label>
                        <div className="relative group h-64 border-4 border-dashed border-primary/10 rounded-[3rem] flex flex-col items-center justify-center hover:bg-primary/5 transition-all">
-                          <input type="file" accept="image/*" onChange={handleHostSelect} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                          <input 
+                             type="file" 
+                             accept="image/*" 
+                             onChange={handleHostSelect} 
+                             onClick={(e) => {
+                               if (isTauri()) {
+                                 e.preventDefault();
+                                 handleTauriHostSelect();
+                               }
+                             }}
+                             className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                           />
                           {hostImage ? (
                              <div className="text-center px-4">
                                 <img src={URL.createObjectURL(hostImage)} alt="preview" className="w-32 h-32 object-cover rounded-2xl mb-4 shadow-xl" />

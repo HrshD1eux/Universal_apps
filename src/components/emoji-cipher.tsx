@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 import { useToast } from '@/hooks/use-toast';
+import { copyToClipboard } from '@/lib/tauri-utils';
 
 const EMOJI_MAP: Record<string, string> = {
   '0': '🍎', '1': '🍌', '2': '🍒', '3': '🍇',
@@ -112,15 +113,22 @@ export default function EmojiCipher() {
 
               <div className="space-y-8">
                  <div className="p-10 rounded-[3rem] bg-card border-2 shadow-2xl space-y-6 relative overflow-hidden group min-h-[400px] flex flex-col">
-                    <Sparkles className="absolute top-0 right-0 p-8 w-40 h-40 opacity-5 group-hover:scale-110 transition-transform" />
+                    <Sparkles className="absolute top-0 right-0 p-8 w-40 h-40 opacity-5 group-hover:scale-110 transition-transform pointer-events-none" />
                     
                     <div className="flex items-center justify-between">
                        <div className="flex items-center gap-2">
                           <Zap className="w-4 h-4 text-amber-600" />
                           <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Result Output</span>
                        </div>
-                       {output && (
-                          <Button variant="ghost" size="sm" onClick={() => { navigator.clipboard.writeText(output); toast({ title: "Copied" }); }} className="h-6 text-[10px] font-black uppercase text-amber-600">Copy Result</Button>
+                        {output && (
+                          <Button variant="ghost" size="sm" onClick={async () => { 
+                             const success = await copyToClipboard(output);
+                             if (success) {
+                               toast({ title: "Copied", description: "Emoji cipher copied to clipboard." });
+                             } else {
+                               toast({ title: "Copy Failed", description: "Please try selecting and copying manually.", variant: "destructive" });
+                             }
+                          }} className="h-6 text-[10px] font-black uppercase text-amber-600">Copy Result</Button>
                        )}
                     </div>
                     
