@@ -172,6 +172,7 @@ const TOOLS_DATA = [
   { id: 'pc-rank', titleKey: 'pcRankTitle', descKey: 'pcRankDesc', href: '/pc-rank-finder', icon: ListOrdered, category: 'math', color: 'purple' },
   { id: 'boolean-lab', titleKey: 'booleanLabTitle', descKey: 'booleanLabDesc', href: '/boolean-lab', icon: Cpu, category: 'dev', color: 'cyan' },
   { id: 'pdf-studio', titleKey: 'pdfStudioTitle', descKey: 'pdfStudioDesc', href: '/pdf', icon: FileText, category: 'pdf', color: 'red' },
+  { id: 'incognito-qr-extractor', titleKey: 'incognitoQrTitle', descKey: 'incognitoQrDesc', href: '/incognito-qr-extractor', icon: ShieldCheck, category: 'utility', color: 'red' },
 ];
 
 export default function Home() {

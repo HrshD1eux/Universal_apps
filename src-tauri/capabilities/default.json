@@ -10,6 +10,9 @@
     "sql:allow-execute",
     "sql:allow-select",
     "sql:allow-load",
-    "opener:default"
+    "opener:default",
+    "dialog:default",
+    "fs:default",
+    "clipboard-manager:default"
   ]
 }

@@ -14,53 +14,83 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function MarkdownPreviewer() {
   const [markdown, setMarkdown] = useState('# 📄 Professional Markdown Preview\n\nWelcome to the **Industrial-Grade MD Editor**. \n\n## 🛠 features\n- [x] Standard Compliant GFM\n- [x] High-Precision Preview\n- [x] Document Structure Analysis\n- [x] Professional PDF Export\n\n### 💻 Usage Example\n```js\n// Simple and clean document formatting\nconst doc = createDocument("report.md");\n```\n\n> "Simplicity is the ultimate sophistication." - Leonardo da Vinci');
   const [viewMode, setViewMode] = useState<'split' | 'preview'>('split');
+  const [isExporting, setIsExporting] = useState(false);
   const { t } = useLanguage();
   const { toast } = useToast();
   const previewRef = useRef<HTMLDivElement>(null);
 
   const exportToPdf = async () => {
-    if (!previewRef.current) return;
+    if (!previewRef.current || isExporting) return;
+    setIsExporting(true);
+    
     try {
       const html2canvas = (await import('html2canvas')).default;
       const element = previewRef.current;
       
+      // Temporary styling for export - remove borders and shadows for a clean PDF look
+      const originalStyle = element.style.cssText;
+      element.style.width = '800px'; 
+      element.style.padding = '40px';
+      element.style.boxShadow = 'none';
+      element.style.border = 'none';
+      
       // Capture the element
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 2, 
         useCORS: true,
         backgroundColor: '#ffffff',
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
+        logging: false,
       });
+      
+      // Restore original style
+      element.style.cssText = originalStyle;
       
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgProps = pdf.getImageProperties(imgData);
-      const contentHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15; 
+      const contentWidth = pageWidth - (margin * 2);
       
+      const imgProps = pdf.getImageProperties(imgData);
+      const contentHeight = (imgProps.height * contentWidth) / imgProps.width;
+      
+      const pageContentHeight = pageHeight - (margin * 2);
       let heightLeft = contentHeight;
-      let position = 0;
+      let position = margin;
       
       // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, contentHeight);
-      heightLeft -= pdfHeight;
+      pdf.addImage(imgData, 'PNG', margin, position, contentWidth, contentHeight);
+      
+      // Mask bottom margin of first page
+      pdf.setFillColor(255, 255, 255);
+      pdf.rect(0, pageHeight - margin, pageWidth, margin, 'F');
+      
+      heightLeft -= pageContentHeight;
       
       // Add subsequent pages if needed
       while (heightLeft > 0) {
-        position = heightLeft - contentHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, contentHeight);
-        heightLeft -= pdfHeight;
+        position = margin - (contentHeight - heightLeft);
+        
+        pdf.addImage(imgData, 'PNG', margin, position, contentWidth, contentHeight);
+        
+        // Mask top and bottom margins to hide overflow/sliced text
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, 0, pageWidth, margin, 'F');
+        pdf.rect(0, pageHeight - margin, pageWidth, margin, 'F');
+        
+        heightLeft -= pageContentHeight;
       }
       
-      pdf.save('markdown-preview.pdf');
-      toast({ title: "Export Successful", description: "Full document exported to PDF." });
+      pdf.save('markdown-professional-report.pdf');
+      toast({ title: "Export Successful", description: "Your document is ready." });
     } catch (err) {
       console.error(err);
-      toast({ title: "Export Failed", description: "Could not generate full PDF.", variant: "destructive" });
+      toast({ title: "Export Failed", description: "Could not generate PDF.", variant: "destructive" });
+    } finally {
+      setIsExporting(false);
     }
   };
 

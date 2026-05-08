@@ -311,6 +311,8 @@ export const translations = {
     glassDesc: 'Create frosted glass CSS effects visually.',
     colorNamesTitle: 'Color Names & Shades',
     colorNamesDesc: 'Explore a database of 10M+ color names and hex values.',
+    incognitoQrTitle: 'Incognito QR Extractor',
+    incognitoQrDesc: 'Extract protected ZIPs & scan QRs with 0 traces.',
 
     // PDF Tools
     pdf_merge_title: 'PDF Merger Pro',
@@ -638,6 +640,8 @@ export const translations = {
     glassDesc: 'Frosted-glass CSS effects visually banayein.',
     colorNamesTitle: 'Color Shades & Names',
     colorNamesDesc: 'Kisi bhi color shade ke naam, RGB aur CMYK values jaanein.',
+    incognitoQrTitle: 'Incognito QR Extractor',
+    incognitoQrDesc: 'Protected ZIP se secure tareeke se QR nikaalein bina trace ke.',
 
     // PDF Tools
     pdf_merge_title: 'PDF Merger Pro',
