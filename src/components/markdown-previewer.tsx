@@ -7,26 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { FileText, Download, FileCode, Layout, Split, Sparkles, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
-import { jsPDF } from 'jspdf';
 import { useToast } from '@/hooks/use-toast';
-
-/**
- * Smart PDF export that:
- * 1. Clones the preview DOM into an offscreen container styled for print
- * 2. Renders the entire clone to a single tall canvas via html2canvas
- * 3. Manually slices the canvas into A4-page-height strips
- * 4. Checks each strip for non-white pixels — skips blank pages entirely
- * 5. Adds only content-bearing slices to the PDF
- */
-
-// ── A4 constants (in pt) ────────────────────────────────────────────
-const A4_WIDTH_PT  = 595.28;
-const A4_HEIGHT_PT = 841.89;
-const MARGIN_PT    = 40;
-const CONTENT_WIDTH_PT = A4_WIDTH_PT - MARGIN_PT * 2;
-
-// Pixel width we render into (maps to CONTENT_WIDTH_PT in the PDF)
-const RENDER_PX = 650;
 
 export default function MarkdownPreviewer() {
   const [markdown, setMarkdown] = useState('# 📄 Professional Markdown Preview\n\nWelcome to the **Industrial-Grade MD Editor**. \n\n## 🛠 features\n- [x] Standard Compliant GFM\n- [x] High-Precision Preview\n- [x] Document Structure Analysis\n- [x] Professional PDF Export\n\n### 💻 Usage Example\n```js\n// Simple and clean document formatting\nconst doc = createDocument("report.md");\n```\n\n> "Simplicity is the ultimate sophistication." - Leonardo da Vinci');
@@ -36,172 +17,126 @@ export default function MarkdownPreviewer() {
   const { toast } = useToast();
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // ── Smart PDF Export ──────────────────────────────────────────────
+  // ── Native Print-to-PDF Engine ──────────────────────────────────────
+  // Since html2canvas/jsPDF fail due to Tauri webview canvas readback bugs,
+  // we leverage the native browser print engine. It guarantees perfect text
+  // selection, flawless tables, and intelligent page breaks.
   const exportToPdf = async () => {
     if (!previewRef.current || isExporting) return;
     setIsExporting(true);
 
     try {
-      const html2canvas = (await import('html2canvas')).default;
-
-      // ── 1. Build an offscreen clone with print-friendly styles ─────
-      const offscreen = document.createElement('div');
-      offscreen.style.cssText = `
-        position: fixed; left: -9999px; top: 0;
-        width: ${RENDER_PX}px;
-        background: #ffffff;
-        color: #1a1a2e;
-        font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-        font-size: 13px;
-        line-height: 1.7;
-        padding: 24px 32px;
-      `;
-      document.body.appendChild(offscreen);
-
-      const clone = previewRef.current.cloneNode(true) as HTMLElement;
-      offscreen.appendChild(clone);
-
-      clone.style.cssText = `
-        width: 100%; padding: 0; margin: 0;
-        background: #ffffff; color: #1a1a2e;
-      `;
-
-      // Remove the "Document Preview" header bar
-      const headerBar = clone.querySelector('.flex.items-center.gap-2.mb-10');
-      if (headerBar) headerBar.remove();
-
-      // Force print-friendly styles on every element
-      const allEls = clone.getElementsByTagName('*');
-      for (let i = 0; i < allEls.length; i++) {
-        const el = allEls[i] as HTMLElement;
-        const tag = el.tagName.toLowerCase();
-
-        el.style.color = '#1a1a2e';
-        el.style.boxShadow = 'none';
-        el.style.textShadow = 'none';
-        el.style.filter = 'none';
-        el.style.backdropFilter = 'none';
-
-        if (tag === 'pre') {
-          el.style.backgroundColor = '#f4f4f8';
-          el.style.border = '1px solid #e2e2e8';
-          el.style.borderRadius = '8px';
-          el.style.padding = '12px 16px';
-          el.style.overflow = 'hidden';
-          el.style.whiteSpace = 'pre-wrap';
-          el.style.wordBreak = 'break-word';
-        } else if (tag === 'code' && el.parentElement?.tagName.toLowerCase() !== 'pre') {
-          el.style.backgroundColor = '#f0f0f5';
-          el.style.padding = '2px 5px';
-          el.style.borderRadius = '4px';
-          el.style.fontSize = '12px';
-        } else {
-          el.style.backgroundColor = 'transparent';
-        }
-
-        if (tag === 'a') { el.style.color = '#3b5998'; el.style.textDecoration = 'underline'; }
-        if (tag === 'h1') { Object.assign(el.style, { fontSize: '22px', fontWeight: '800', marginBottom: '12px', paddingBottom: '8px', borderBottom: '2px solid #e0e0e0', color: '#111827' }); }
-        if (tag === 'h2') { Object.assign(el.style, { fontSize: '18px', fontWeight: '700', marginTop: '20px', marginBottom: '8px', paddingBottom: '4px', borderBottom: '1px solid #eee', color: '#1f2937' }); }
-        if (tag === 'h3') { Object.assign(el.style, { fontSize: '15px', fontWeight: '700', marginTop: '16px', marginBottom: '6px', color: '#374151' }); }
-        if (tag === 'blockquote') { Object.assign(el.style, { borderLeft: '4px solid #6366f1', padding: '12px 16px', margin: '12px 0', color: '#4b5563', fontStyle: 'italic', backgroundColor: '#f8f8fc', borderRadius: '0 8px 8px 0' }); }
-        if (tag === 'table') { Object.assign(el.style, { width: '100%', borderCollapse: 'collapse', marginBottom: '16px' }); }
-        if (tag === 'th' || tag === 'td') { Object.assign(el.style, { border: '1px solid #e5e7eb', padding: '8px 12px', textAlign: 'left' }); }
-        if (tag === 'th') { el.style.backgroundColor = '#f9fafb'; el.style.fontWeight = '600'; }
+      const articleEl = previewRef.current.querySelector('article');
+      if (!articleEl) {
+        toast({ title: "Export Failed", description: "No content found.", variant: "destructive" });
+        setIsExporting(false);
+        return;
       }
 
-      // Let the DOM settle
-      await new Promise(r => setTimeout(r, 150));
+      // 1. Create a dedicated container just for printing
+      const printContainer = document.createElement('div');
+      printContainer.id = 'pdf-native-print-container';
+      printContainer.innerHTML = articleEl.outerHTML;
+      document.body.appendChild(printContainer);
 
-      // ── 2. Render to a single tall canvas ─────────────────────────
-      const canvas = await html2canvas(offscreen, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        allowTaint: true,
-        width: RENDER_PX,
-        windowWidth: RENDER_PX,
-      });
-
-      // Cleanup offscreen element immediately
-      document.body.removeChild(offscreen);
-
-      // ── 3. Slice canvas into pages & build PDF ────────────────────
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-
-      // PDF dimensions in pt
-      const pdfPageW = A4_WIDTH_PT;
-      const pdfPageH = A4_HEIGHT_PT;
-      const contentW = pdfPageW - MARGIN_PT * 2;
-      const contentH = pdfPageH - MARGIN_PT * 2;
-
-      // How many canvas pixels correspond to the printable area
-      const imgScale = contentW / canvasWidth; // pt per canvas-px
-      const sliceHeight = Math.floor(contentH / imgScale); // canvas-px per page
-
-      const totalPages = Math.ceil(canvasHeight / sliceHeight);
-      const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
-
-      let pagesAdded = 0;
-
-      for (let page = 0; page < totalPages; page++) {
-        const srcY = page * sliceHeight;
-        const srcH = Math.min(sliceHeight, canvasHeight - srcY);
-
-        if (srcH <= 0) break;
-
-        // Extract slice into a temporary canvas
-        const sliceCanvas = document.createElement('canvas');
-        sliceCanvas.width = canvasWidth;
-        sliceCanvas.height = srcH;
-        const ctx = sliceCanvas.getContext('2d')!;
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvasWidth, srcH);
-        ctx.drawImage(canvas, 0, srcY, canvasWidth, srcH, 0, 0, canvasWidth, srcH);
-
-        // ── Check if this slice has actual content (not just white) ──
-        const sampleData = ctx.getImageData(0, 0, canvasWidth, srcH).data;
-        let hasContent = false;
-        // Sample every 40th pixel for speed (checking full image is too slow)
-        for (let px = 0; px < sampleData.length; px += 40 * 4) {
-          const r = sampleData[px];
-          const g = sampleData[px + 1];
-          const b = sampleData[px + 2];
-          // If pixel is not white/near-white, we have content
-          if (r < 250 || g < 250 || b < 250) {
-            hasContent = true;
-            break;
+      // 2. Inject perfectly tuned Print CSS
+      const style = document.createElement('style');
+      style.id = 'pdf-native-print-style';
+      style.innerHTML = `
+        @media screen {
+          #pdf-native-print-container {
+            display: none !important;
           }
         }
+        @media print {
+          /* Hide the entire app UI */
+          body > *:not(#pdf-native-print-container) {
+            display: none !important;
+          }
+          
+          /* Show only our print container */
+          #pdf-native-print-container {
+            display: block !important;
+            width: 100%;
+            background: white !important;
+            color: #111827 !important;
+            font-family: 'Segoe UI', system-ui, sans-serif !important;
+          }
 
-        if (!hasContent) continue; // Skip blank pages entirely
+          /* Professional A4 Margins */
+          @page {
+            size: A4 portrait;
+            margin: 20mm;
+          }
 
-        // Add a new page (jsPDF starts with one page, so skip addPage for first)
-        if (pagesAdded > 0) pdf.addPage();
-        pagesAdded++;
+          /* Clean, professional typography */
+          #pdf-native-print-container article { max-width: none !important; }
+          #pdf-native-print-container h1 { font-size: 24pt !important; font-weight: 800; margin-bottom: 12pt; border-bottom: 2px solid #e5e7eb; padding-bottom: 8pt; color: #000 !important; }
+          #pdf-native-print-container h2 { font-size: 18pt !important; font-weight: 700; margin-top: 18pt; margin-bottom: 8pt; border-bottom: 1px solid #f3f4f6; padding-bottom: 4pt; color: #1f2937 !important; }
+          #pdf-native-print-container h3 { font-size: 14pt !important; font-weight: 600; margin-top: 14pt; margin-bottom: 6pt; color: #374151 !important; }
+          #pdf-native-print-container p, 
+          #pdf-native-print-container li { font-size: 11pt !important; line-height: 1.6 !important; margin-bottom: 8pt; color: #374151 !important; }
+          
+          /* Table Formatting */
+          #pdf-native-print-container table { width: 100% !important; border-collapse: collapse !important; margin-bottom: 14pt; font-size: 10pt !important; }
+          #pdf-native-print-container th, 
+          #pdf-native-print-container td { border: 1px solid #d1d5db !important; padding: 8pt 10pt !important; text-align: left !important; }
+          #pdf-native-print-container th { background-color: #f9fafb !important; font-weight: bold !important; color: #111827 !important; }
 
-        // Place slice image on PDF page
-        const imgData = sliceCanvas.toDataURL('image/jpeg', 0.95);
-        const drawH = srcH * imgScale;
-        pdf.addImage(imgData, 'JPEG', MARGIN_PT, MARGIN_PT, contentW, drawH);
-      }
+          /* Code Blocks */
+          #pdf-native-print-container pre { background: #f3f4f6 !important; padding: 12pt !important; border: 1px solid #e5e7eb !important; border-radius: 6pt !important; font-size: 9.5pt !important; font-family: 'Consolas', monospace !important; white-space: pre-wrap !important; word-wrap: break-word !important; margin-bottom: 12pt !important; }
+          #pdf-native-print-container code { font-family: 'Consolas', monospace !important; font-size: 0.9em !important; background: #f3f4f6 !important; padding: 2pt 4pt !important; border-radius: 3pt !important; }
+          
+          /* Blockquotes */
+          #pdf-native-print-container blockquote { border-left: 4pt solid #6366f1 !important; padding-left: 12pt !important; margin: 12pt 0 !important; color: #4b5563 !important; font-style: italic !important; }
 
-      if (pagesAdded === 0) {
-        // Edge case: nothing rendered — add the full canvas on one page
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', MARGIN_PT, MARGIN_PT, contentW, contentH);
-      }
+          /* Images */
+          #pdf-native-print-container img { max-width: 100% !important; height: auto !important; border-radius: 6pt !important; }
 
-      pdf.save('markdown-report.pdf');
+          /* Smart Page Breaks - Never cut tables, code, or images in half! */
+          #pdf-native-print-container table, 
+          #pdf-native-print-container tr, 
+          #pdf-native-print-container pre, 
+          #pdf-native-print-container img, 
+          #pdf-native-print-container blockquote {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+          
+          /* Keep headings with their following paragraphs */
+          #pdf-native-print-container h1, 
+          #pdf-native-print-container h2, 
+          #pdf-native-print-container h3 {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+          }
+        }
+      `;
+      document.head.appendChild(style);
 
-      toast({ title: "Export Successful", description: `Exported ${pagesAdded} page${pagesAdded !== 1 ? 's' : ''} with zero blank pages.` });
-    } catch (err) {
-      console.error('PDF Export Error:', err);
-      toast({
-        title: "Export Failed",
-        description: "Could not generate PDF. Please try again.",
-        variant: "destructive",
+      // Give browser a tiny moment to apply styles
+      await new Promise(r => setTimeout(r, 100));
+
+      // 3. Trigger native print dialog
+      // In Tauri, this opens the system dialog where the user selects "Save as PDF"
+      window.print();
+
+      toast({ 
+        title: "Print Dialog Opened", 
+        description: "Select 'Save as PDF' (or 'Microsoft Print to PDF') to export.",
       });
+
+      // Cleanup
+      setTimeout(() => {
+        const cleanupContainer = document.getElementById('pdf-native-print-container');
+        const cleanupStyle = document.getElementById('pdf-native-print-style');
+        if (cleanupContainer) document.body.removeChild(cleanupContainer);
+        if (cleanupStyle) document.head.removeChild(cleanupStyle);
+      }, 1000);
+
+    } catch (err) {
+      console.error('[PDF Export] Error:', err);
+      toast({ title: "Export Failed", description: String(err), variant: "destructive" });
     } finally {
       setIsExporting(false);
     }

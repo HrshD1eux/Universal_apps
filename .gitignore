@@ -2,7 +2,12 @@ node_modules
 .next
 dist
 build
-.git
+out
+src-tauri/target
+.env
+.env.local
+.env*.local
 .cache
 coverage
 *.log
+.vercel

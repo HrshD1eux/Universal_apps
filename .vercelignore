@@ -1,6 +1,29 @@
-node_modules/
-.next/
-out/
-.env
-dist
+# Dependencies
+node_modules
 
+# Build outputs
+.next
+dist
+build
+out
+
+# Rust / Tauri
+src-tauri/target
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# Cache & logs
+.cache
+coverage
+*.log
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
