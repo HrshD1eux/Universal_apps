@@ -23,7 +23,8 @@ export default function GeometrySuite() {
   const [solveMode, setSolveMode] = useState<SolveMode>('forward');
   const [values, setValues] = useState<Record<string, string>>({ 
     radius: '5', side: '4', length: '6', width: '4', height: '10', 
-    sides: '6', majorRadius: '8', targetArea: '100', targetVolume: '500' 
+    sides: '6', majorRadius: '8', targetArea: '100', targetVolume: '500',
+    x1: '0', y1: '0', x2: '40', y2: '0', x3: '20', y3: '35'
   });
   const { t } = useLanguage();
 
@@ -42,6 +43,21 @@ export default function GeometrySuite() {
         case 'circle':
           return { area: PI * (v.radius ** 2), perimeter: 2 * PI * v.radius, formula: 'A = πr², C = 2πr' };
         case 'triangle':
+          if (v.x1 !== undefined && v.y1 !== undefined) {
+            const area = Math.abs(v.x1*(v.y2-v.y3) + v.x2*(v.y3-v.y1) + v.x3*(v.y1-v.y2)) / 2;
+            const a = Math.sqrt((v.x2-v.x3)**2 + (v.y2-v.y3)**2);
+            const b = Math.sqrt((v.x1-v.x3)**2 + (v.y1-v.y3)**2);
+            const c = Math.sqrt((v.x1-v.x2)**2 + (v.y1-v.y2)**2);
+            const p = a + b + c;
+            const centroid = { x: (v.x1+v.x2+v.x3)/3, y: (v.y1+v.y2+v.y3)/3 };
+            const incentre = { x: (a*v.x1 + b*v.x2 + c*v.x3)/p, y: (a*v.y1 + b*v.y2 + c*v.y3)/p };
+            
+            const D = 2 * (v.x1 * (v.y2 - v.y3) + v.x2 * (v.y3 - v.y1) + v.x3 * (v.y1 - v.y2));
+            const circumX = ((v.x1**2 + v.y1**2)*(v.y2 - v.y3) + (v.x2**2 + v.y2**2)*(v.y3 - v.y1) + (v.x3**2 + v.y3**2)*(v.y1 - v.y2)) / D;
+            const circumY = ((v.x1**2 + v.y1**2)*(v.x3 - v.x2) + (v.x2**2 + v.y2**2)*(v.x1 - v.x3) + (v.x3**2 + v.y3**2)*(v.y2 - v.x1)) / D;
+
+            return { area, perimeter: p, centroid, incentre, circumcentre: { x: circumX, y: circumY }, formula: 'A = ½|Σx(y-y)|' };
+          }
           return { area: 0.5 * v.length * v.height, formula: 'A = ½bh' };
         case 'rectangle':
           return { area: v.length * v.width, perimeter: 2 * (v.length + v.width), formula: 'A = lw, P = 2(l+w)' };
@@ -165,11 +181,20 @@ export default function GeometrySuite() {
                       </svg>
                     )}
                     {activeShape === 'triangle' && (
-                      <svg width="240" height="200" viewBox="0 0 100 80" className="text-primary">
-                        <path d="M10 70 L90 70 L50 10 Z" fill="currentColor" fillOpacity={0.1} stroke="currentColor" strokeWidth="2" />
-                        <line x1="50" y1="10" x2="50" y2="70" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" />
-                        <text x="50" y="78" fontSize="5" fontWeight="bold" fill="currentColor" textAnchor="middle">b</text>
-                        <text x="45" y="40" fontSize="5" fontWeight="bold" fill="currentColor" textAnchor="end">h</text>
+                      <svg width="240" height="240" viewBox="-10 -10 120 120" className="text-primary">
+                        {values.x1 !== undefined ? (
+                          <>
+                            <path d={`M ${values.x1} ${100-parseFloat(values.y1)} L ${values.x2} ${100-parseFloat(values.y2)} L ${values.x3} ${100-parseFloat(values.y3)} Z`} fill="currentColor" fillOpacity={0.1} stroke="currentColor" strokeWidth="2" />
+                            {results.centroid && <circle cx={results.centroid.x} cy={100-results.centroid.y} r="2" fill="#f43f5e" />}
+                            {results.incentre && <circle cx={results.incentre.x} cy={100-results.incentre.y} r="2" fill="#3b82f6" />}
+                            {results.circumcentre && <circle cx={results.circumcentre.x} cy={100-results.circumcentre.y} r="2" fill="#10b981" />}
+                          </>
+                        ) : (
+                          <>
+                            <path d="M10 70 L90 70 L50 10 Z" fill="currentColor" fillOpacity={0.1} stroke="currentColor" strokeWidth="2" />
+                            <line x1="50" y1="10" x2="50" y2="70" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" />
+                          </>
+                        )}
                       </svg>
                     )}
                     {activeShape === 'polygon' && (
@@ -285,7 +310,17 @@ export default function GeometrySuite() {
                                    <Input type="number" value={values.side} onChange={(e) => updateValue('side', e.target.value)} className="h-14 rounded-2xl border-2 text-xl font-bold focus:ring-primary" />
                                 </div>
                              )}
-                             {(['rectangle', 'triangle', 'ellipsoid']).includes(activeShape) && (
+                             {activeShape === 'triangle' && (
+                                <div className="grid grid-cols-2 gap-4">
+                                   {['x1', 'y1', 'x2', 'y2', 'x3', 'y3'].map(coord => (
+                                      <div key={coord} className="space-y-1">
+                                         <label className="text-[10px] font-bold opacity-50 ml-1 uppercase">{coord}</label>
+                                         <Input value={values[coord]} onChange={(e) => updateValue(coord, e.target.value)} className="h-10 rounded-xl border-2 font-black" />
+                                      </div>
+                                   ))}
+                                </div>
+                             )}
+                             {(['rectangle', 'ellipsoid']).includes(activeShape) && (
                                 <div className="space-y-2">
                                    <label className="text-[10px] font-bold opacity-50 ml-1">Length / Axis A</label>
                                    <Input type="number" value={values.length} onChange={(e) => updateValue('length', e.target.value)} className="h-14 rounded-2xl border-2 text-xl font-bold focus:ring-primary" />
@@ -369,6 +404,22 @@ export default function GeometrySuite() {
                                    <div className="p-6 rounded-[2rem] bg-muted/50 border-2">
                                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Perimeter / Circumference</p>
                                       <p className="text-2xl font-black">{typeof results.perimeter === 'number' ? results.perimeter.toLocaleString(undefined, { maximumFractionDigits: 4 }) : results.perimeter}</p>
+                                   </div>
+                                )}
+                                {results.centroid && (
+                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                                      <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20">
+                                         <p className="text-[8px] font-black uppercase text-rose-600 mb-1">Centroid (Red)</p>
+                                         <p className="text-sm font-black text-rose-700">({results.centroid.x.toFixed(1)}, {results.centroid.y.toFixed(1)})</p>
+                                      </div>
+                                      <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+                                         <p className="text-[8px] font-black uppercase text-blue-600 mb-1">Incentre (Blue)</p>
+                                         <p className="text-sm font-black text-blue-700">({results.incentre.x.toFixed(1)}, {results.incentre.y.toFixed(1)})</p>
+                                      </div>
+                                      <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                                         <p className="text-[8px] font-black uppercase text-emerald-600 mb-1">Circumcentre (Green)</p>
+                                         <p className="text-sm font-black text-emerald-700">({results.circumcentre.x.toFixed(1)}, {results.circumcentre.y.toFixed(1)})</p>
+                                      </div>
                                    </div>
                                 )}
                              </motion.div>

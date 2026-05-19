@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import PdfToolsDashboard from '@/components/pdf/pdf-tools-dashboard';
 import PdfMerger from '@/components/pdf/pdf-merger';
@@ -21,7 +21,8 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, FileText, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 
-export default function PdfPage() {
+// Inner component that uses useSearchParams (must be inside Suspense)
+function PdfPageContent() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const { t } = useLanguage();
@@ -79,9 +80,16 @@ export default function PdfPage() {
           <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
         </Button>
       )}
-      <React.Suspense fallback={<div className="h-96 flex items-center justify-center"><Sparkles className="w-8 h-8 animate-spin text-primary" /></div>}>
-        {renderTool()}
-      </React.Suspense>
+      {renderTool()}
     </div>
+  );
+}
+
+// Outer component wraps with Suspense (required by Next.js 15 for useSearchParams)
+export default function PdfPage() {
+  return (
+    <Suspense fallback={<div className="h-96 flex items-center justify-center"><Sparkles className="w-8 h-8 animate-spin text-primary" /></div>}>
+      <PdfPageContent />
+    </Suspense>
   );
 }

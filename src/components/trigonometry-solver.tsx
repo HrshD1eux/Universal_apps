@@ -18,7 +18,8 @@ export default function TrigonometrySolver() {
     A: '', B: '', C: '90'
   });
   const [angle, setAngle] = useState('45');
-  const [activeTab, setActiveTab] = useState<'triangle' | 'unit'>('triangle');
+  const [invValue, setInvValue] = useState('0.5');
+  const [activeTab, setActiveTab] = useState<'triangle' | 'unit' | 'inverse'>('triangle');
   
   const { t } = useLanguage();
 
@@ -120,6 +121,7 @@ export default function TrigonometrySolver() {
               <div className="flex p-1 bg-muted rounded-2xl border-2">
                  <button onClick={() => setActiveTab('triangle')} className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === 'triangle' ? 'bg-background shadow-lg text-primary scale-105' : 'text-muted-foreground hover:text-primary'}`}>TRIANGLE</button>
                  <button onClick={() => setActiveTab('unit')} className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === 'unit' ? 'bg-background shadow-lg text-primary scale-105' : 'text-muted-foreground hover:text-primary'}`}>UNIT CIRCLE</button>
+                 <button onClick={() => setActiveTab('inverse')} className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === 'inverse' ? 'bg-background shadow-lg text-primary scale-105' : 'text-muted-foreground hover:text-primary'}`}>INVERSE</button>
               </div>
            </div>
         </CardHeader>
@@ -232,6 +234,43 @@ export default function TrigonometrySolver() {
                           })()}
                        </svg>
                     </div>
+                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'inverse' && (
+              <motion.div key="inverse" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="max-w-4xl mx-auto space-y-12">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div className="space-y-6">
+                       <label className="text-[10px] font-black uppercase tracking-widest text-primary">Input Value (-1 to 1 for sin/cos)</label>
+                       <Input type="number" step="0.01" value={invValue} onChange={(e) => setInvValue(e.target.value)} className="h-16 rounded-2xl border-2 text-3xl font-black focus:ring-primary text-center" />
+                    </div>
+                    <div className="p-8 rounded-[2.5rem] bg-primary/5 border-2 border-primary/20 flex items-center gap-4">
+                       <Sparkles className="w-8 h-8 text-primary opacity-40" />
+                       <p className="text-xs font-bold text-primary/80 uppercase leading-relaxed tracking-wider">
+                          Inverse functions (Arc) calculate the angle whose trigonometric ratio is the input value.
+                       </p>
+                    </div>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[
+                      { label: 'asin(x)', val: Math.asin(parseFloat(invValue)) },
+                      { label: 'acos(x)', val: Math.acos(parseFloat(invValue)) },
+                      { label: 'atan(x)', val: Math.atan(parseFloat(invValue)) }
+                    ].map((item, i) => (
+                       <div key={i} className="p-8 rounded-[2.5rem] bg-card border-2 shadow-xl hover:border-primary/40 transition-all group">
+                          <p className="text-[10px] font-black opacity-40 uppercase mb-4 group-hover:text-primary transition-colors">{item.label}</p>
+                          <div className="space-y-2">
+                             <p className="text-3xl font-black text-primary">
+                                {isNaN(item.val) ? 'Error' : ((item.val * 180) / Math.PI).toFixed(2)}°
+                             </p>
+                             <p className="text-xs font-bold opacity-40 italic">
+                                {isNaN(item.val) ? 'Out of range' : item.val.toFixed(4)} rad
+                             </p>
+                          </div>
+                       </div>
+                    ))}
                  </div>
               </motion.div>
             )}

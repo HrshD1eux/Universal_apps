@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Dices, Hash, RefreshCcw, Percent, 
   Target, Sparkles, Brain, Calculator, 
-  ArrowRight, Layers, BarChart3, Binary, Info
+  ArrowRight, Layers, BarChart3, Binary, Info, Activity
 } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 import { 
@@ -151,21 +151,25 @@ export default function ProbabilityPro() {
                    </div>
 
                    <div className="space-y-6">
-                       <div className="p-10 rounded-[3rem] bg-primary text-primary-foreground shadow-2xl relative overflow-hidden group">
-                         <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                            <Calculator className="w-24 h-24" />
-                         </div>
-                         <div className="relative z-10 space-y-8">
-                            <div>
-                               <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">{t('combinations')}</p>
-                               <p className="text-6xl font-black">{isNaN(parseInt(n)) || isNaN(parseInt(r)) ? '0' : nCr(parseInt(n) || 0, parseInt(r) || 0).toLocaleString()}</p>
-                            </div>
-                            <div className="pt-8 border-t border-white/10">
-                               <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">{t('permutations')}</p>
-                               <p className="text-4xl font-black">{isNaN(parseInt(n)) || isNaN(parseInt(r)) ? '0' : nPr(parseInt(n) || 0, parseInt(r) || 0).toLocaleString()}</p>
-                            </div>
-                         </div>
-                      </div>
+                        <div className="p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] bg-primary text-primary-foreground shadow-2xl relative overflow-hidden group">
+                          <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                             <Calculator className="w-16 h-16 md:w-24 md:h-24" />
+                          </div>
+                          <div className="relative z-10 space-y-6 md:space-y-8">
+                             <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">{t('combinations')}</p>
+                                <p className="text-4xl md:text-6xl font-black break-all leading-tight">
+                                   {isNaN(parseInt(n)) || isNaN(parseInt(r)) ? '0' : nCr(parseInt(n) || 0, parseInt(r) || 0).toLocaleString()}
+                                </p>
+                             </div>
+                             <div className="pt-6 md:pt-8 border-t border-white/10">
+                                <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">{t('permutations')}</p>
+                                <p className="text-2xl md:text-4xl font-black break-all leading-tight">
+                                   {isNaN(parseInt(n)) || isNaN(parseInt(r)) ? '0' : nPr(parseInt(n) || 0, parseInt(r) || 0).toLocaleString()}
+                                </p>
+                             </div>
+                          </div>
+                       </div>
                    </div>
                 </div>
 
