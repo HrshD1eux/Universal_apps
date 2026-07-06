@@ -14,6 +14,38 @@ import { formatCurrency, numberToWords } from '@/lib/utils';
 import { useLanguage } from '@/context/language-context';
 import { useSettings } from '@/context/settings-context';
 
+// Fallback calculation for non-Tauri environments
+const calculateGSTFallback = (amount: number, rate: number, isInclusive: boolean) => {
+  if (isInclusive) {
+    // Total amount includes GST
+    const base_amount = amount / (1 + rate / 100);
+    const gst_amount = amount - base_amount;
+    return {
+      base_amount: parseFloat(base_amount.toFixed(2)),
+      gst_amount: parseFloat(gst_amount.toFixed(2)),
+      total_amount: parseFloat(amount.toFixed(2))
+    };
+  } else {
+    // Amount is before GST
+    const gst_amount = (amount * rate) / 100;
+    const total_amount = amount + gst_amount;
+    return {
+      base_amount: parseFloat(amount.toFixed(2)),
+      gst_amount: parseFloat(gst_amount.toFixed(2)),
+      total_amount: parseFloat(total_amount.toFixed(2))
+    };
+  }
+};
+
+function formatINR(value: number): string {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
+}
+
 export default function GSTCalculator() {
   const [amount, setAmount] = useState('10000');
   const [rate, setRate] = useState('18');
@@ -24,14 +56,25 @@ export default function GSTCalculator() {
   const { toast } = useToast();
 
   const handleCalculate = async () => {
-    if (!isTauri()) return;
-
     try {
-      const res = await safeInvoke<any>('calculate_gst', {
-        amount: parseFloat(amount),
-        rate: parseFloat(rate),
-        isInclusive: mode === 'inclusive'
-      });
+      let res;
+      
+      if (isTauri()) {
+        // Use Tauri backend calculation
+        res = await safeInvoke<any>('calculate_gst', {
+          amount: parseFloat(amount),
+          rate: parseFloat(rate),
+          isInclusive: mode === 'inclusive'
+        });
+      } else {
+        // Use fallback calculation for web environments
+        res = calculateGSTFallback(
+          parseFloat(amount),
+          parseFloat(rate),
+          mode === 'inclusive'
+        );
+      }
+
       setResult(res);
 
       await saveToHistory(
@@ -58,20 +101,6 @@ export default function GSTCalculator() {
 
   return (
     <Card className="max-w-4xl mx-auto border-none shadow-2xl bg-gradient-to-br from-background via-muted/50 to-background overflow-hidden relative">
-      {!isTauri() && (
-        <div className="absolute inset-0 z-50 backdrop-blur-sm bg-background/20 flex flex-col items-center justify-center p-6 text-center">
-          <div className="bg-background/90 p-8 rounded-3xl shadow-2xl border-2 border-primary/20 max-w-sm">
-            <Receipt className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
-            <h3 className="text-xl font-bold mb-2">Desktop Required</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              Official GST computations are processed locally to ensure 100% precision.
-            </p>
-            <Button variant="outline" className="rounded-xl" onClick={() => window.location.reload()}>
-              Retry Detection
-            </Button>
-          </div>
-        </div>
-      )}
       <CardHeader className="bg-primary/5 border-b border-primary/10">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-lg">
@@ -149,13 +178,13 @@ export default function GSTCalculator() {
             </div>
 
             <div className="p-4 rounded-xl bg-muted/30 border space-y-2">
-               <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  <ShieldCheckIcon className="w-4 h-4 text-green-500" />
-                  India GST Standards
-               </div>
-               <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Automatically splits taxes into CGST (Central) and SGST (State) for intra-state transactions (50/50 split).
-               </p>
+              <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                <ShieldCheckIcon className="w-4 h-4 text-green-500" />
+                India GST Standards
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                Automatically splits taxes into CGST (Central) and SGST (State) for intra-state transactions (50/50 split).
+              </p>
             </div>
           </div>
 
@@ -169,52 +198,52 @@ export default function GSTCalculator() {
                 >
                   <div className="p-6 rounded-3xl bg-primary/5 border-2 border-primary/20 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                       <Zap className="w-16 h-16 text-primary" />
+                      <Zap className="w-16 h-16 text-primary" />
                     </div>
                     
                     <div className="flex justify-between items-end mb-6">
-                       <div>
-                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Total Tax (GST)</p>
-                          <p className="text-4xl font-black text-primary mb-1">{formatCurrency(result.gst_amount, currency)}</p>
-                          {showWords && (
-                            <p className="text-[9px] font-bold italic text-primary/70 leading-tight">
-                              {numberToWords(result.gst_amount, currency)}
-                            </p>
-                          )}
-                       </div>
-                       <Button size="icon" variant="ghost" className="rounded-full h-10 w-10">
-                          <Check className="w-5 h-5 text-primary" />
-                       </Button>
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Total Tax (GST)</p>
+                        <p className="text-4xl font-black text-primary mb-1">{formatCurrency(result.gst_amount, currency)}</p>
+                        {showWords && (
+                          <p className="text-[9px] font-bold italic text-primary/70 leading-tight">
+                            {numberToWords(result.gst_amount, currency)}
+                          </p>
+                        )}
+                      </div>
+                      <Button size="icon" variant="ghost" className="rounded-full h-10 w-10">
+                        <Check className="w-5 h-5 text-primary" />
+                      </Button>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 border-t border-primary/10 pt-4">
-                       <div className="space-y-1">
-                          <p className="text-[9px] uppercase font-bold text-muted-foreground">CGST ({(parseFloat(rate)/2).toFixed(1)}%)</p>
-                          <p className="text-sm font-bold">{formatINR(parseFloat(result.gst_amount)/2)}</p>
-                       </div>
-                       <div className="space-y-1 border-l border-primary/10 pl-4">
-                          <p className="text-[9px] uppercase font-bold text-muted-foreground">SGST ({(parseFloat(rate)/2).toFixed(1)}%)</p>
-                          <p className="text-sm font-bold">{formatINR(parseFloat(result.gst_amount)/2)}</p>
-                       </div>
+                      <div className="space-y-1">
+                        <p className="text-[9px] uppercase font-bold text-muted-foreground">CGST ({(parseFloat(rate)/2).toFixed(1)}%)</p>
+                        <p className="text-sm font-bold">{formatINR(parseFloat(result.gst_amount)/2)}</p>
+                      </div>
+                      <div className="space-y-1 border-l border-primary/10 pl-4">
+                        <p className="text-[9px] uppercase font-bold text-muted-foreground">SGST ({(parseFloat(rate)/2).toFixed(1)}%)</p>
+                        <p className="text-sm font-bold">{formatINR(parseFloat(result.gst_amount)/2)}</p>
+                      </div>
                     </div>
                   </div>
 
                   <div className="p-6 rounded-3xl border-2 border-border/50 space-y-4">
-                     <div className="flex justify-between items-center">
-                        <span className="text-sm font-semibold text-muted-foreground">Base Amount</span>
-                        <span className="text-lg font-bold font-mono">{formatCurrency(result.base_amount, currency)}</span>
-                     </div>
-                     <div className="flex justify-between items-center pt-4 border-t">
-                        <div className="flex flex-col">
-                           <span className="text-sm font-bold">Net Total</span>
-                           {showWords && (
-                             <span className="text-[8px] font-bold italic text-muted-foreground leading-tight mt-1 max-w-[150px]">
-                               {numberToWords(result.total_amount, currency)}
-                             </span>
-                           )}
-                        </div>
-                        <span className="text-2xl font-black font-mono text-primary">{formatCurrency(result.total_amount, currency)}</span>
-                     </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-semibold text-muted-foreground">Base Amount</span>
+                      <span className="text-lg font-bold font-mono">{formatCurrency(result.base_amount, currency)}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-4 border-t">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold">Net Total</span>
+                        {showWords && (
+                          <span className="text-[8px] font-bold italic text-muted-foreground leading-tight mt-1 max-w-[150px]">
+                            {numberToWords(result.total_amount, currency)}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-2xl font-black font-mono text-primary">{formatCurrency(result.total_amount, currency)}</span>
+                    </div>
                   </div>
                 </motion.div>
               )}
