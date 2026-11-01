@@ -1,6 +1,7 @@
 'use client';
 
 import { invoke } from '@tauri-apps/api/core';
+import { runWebCalculation } from './calc-engine';
 
 /**
  * Robust check to determine if the code is running inside a Tauri window.
@@ -12,23 +13,25 @@ export const isTauri = (): boolean => {
 };
 
 /**
- * A safe wrapper for Tauri's invoke that prevents crashes in non-Tauri environments.
- * @param command The Rust command to invoke
+ * Universal safe invoke: Executes via Tauri Rust IPC on desktop,
+ * and automatically falls back to instant client-side math calculations in web browsers.
+ * @param command The calculation command to invoke
  * @param args Arguments for the command
- * @returns The result of the command, or throws a specific error if not in Tauri.
+ * @returns The result of the command
  */
 export async function safeInvoke<T>(command: string, args?: any): Promise<T> {
-  if (!isTauri()) {
-    throw new Error('DESKTOP_ONLY: IPC calls are only available in the desktop application.');
+  if (isTauri()) {
+    try {
+      return await invoke<T>(command, args);
+    } catch (err) {
+      console.warn(`Tauri command '${command}' failed, using web fallback:`, err);
+    }
   }
   
-  try {
-    return await invoke<T>(command, args);
-  } catch (err) {
-    // Standardize error reporting
-    throw err;
-  }
+  // Instant client-side web fallback
+  return await runWebCalculation<T>(command, args);
 }
+
 /**
  * Robust copy to clipboard function that handles Tauri, Browser APIs, and legacy fallbacks.
  */
@@ -37,14 +40,13 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 
   // 1. Try Tauri Plugin (Priority for Desktop)
   try {
-    // Dynamic import to avoid breaking in non-Tauri environments
     const { writeText } = await import('@tauri-apps/plugin-clipboard-manager');
     if (typeof writeText === 'function') {
       await writeText(text);
       return true;
     }
   } catch (err) {
-    // Likely not in a Tauri environment or plugin missing
+    // Likely not in a Tauri environment
   }
 
   // 2. Try modern Browser Clipboard API
@@ -54,15 +56,14 @@ export async function copyToClipboard(text: string): Promise<boolean> {
       return true;
     }
   } catch (err) {
-    // Browser blocked it (requires focus or permissions)
+    // Browser blocked
   }
 
-  // 3. Final legacy fallback: document.execCommand('copy')
+  // 3. Legacy fallback: document.execCommand('copy')
   try {
     if (typeof document !== 'undefined') {
       const textArea = document.createElement("textarea");
       textArea.value = text;
-      // Ensure it's not visible but part of the DOM
       textArea.style.position = "fixed";
       textArea.style.left = "-9999px";
       textArea.style.top = "0";

@@ -175,14 +175,12 @@ export default function HistoryView() {
               ) : !isLoading ? (
                 <div className="py-20 flex flex-col items-center justify-center text-center space-y-4 px-6">
                   <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                     {isTauri() ? <Clock className="w-8 h-8 text-muted-foreground/50" /> : <Zap className="w-8 h-8 text-primary" />}
+                    <Clock className="w-8 h-8 text-muted-foreground/50" />
                   </div>
                   <div>
-                    <p className="font-bold text-muted-foreground">{isTauri() ? "No History Yet" : "Desktop History Only"}</p>
+                    <p className="font-bold text-muted-foreground">No History Yet</p>
                     <p className="text-sm text-muted-foreground/60 max-w-[200px]">
-                      {isTauri() 
-                        ? "Perform your first calculation to see entries here." 
-                        : "Calculation history is stored locally on your device and is only accessible in the desktop app."}
+                      Perform your first calculation to see entries here.
                     </p>
                   </div>
                 </div>

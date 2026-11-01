@@ -5,10 +5,27 @@ import { CalculatorHistoryItem } from './types';
 import { isTauri } from './tauri-utils';
 
 let db: Database | null = null;
+const WEB_STORAGE_KEY = 'calc_history_web';
+
+function getWebHistory(): CalculatorHistoryItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(WEB_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function setWebHistory(items: CalculatorHistoryItem[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(WEB_STORAGE_KEY, JSON.stringify(items));
+  } catch {}
+}
 
 export async function getDb() {
   if (!isTauri()) {
-    console.warn('Database access skipped: Not in a Tauri environment.');
     return null;
   }
 
@@ -43,13 +60,29 @@ export async function saveToHistory(
   outputs: any,
   executionTimeMs: number
 ) {
-  const database = await getDb();
-  if (!database) return null;
-
   const id = crypto.randomUUID();
+  const database = await getDb();
   
+  if (!database) {
+    try {
+      const items = getWebHistory();
+      items.unshift({
+        id,
+        calculator_name: calculatorName,
+        category,
+        inputs,
+        outputs,
+        execution_time_ms: executionTimeMs,
+        created_at: new Date().toISOString()
+      });
+      setWebHistory(items.slice(0, 100));
+      return id;
+    } catch {
+      return null;
+    }
+  }
+
   try {
-    // Note: Tauri SQL plugin uses ? placeholders for SQLite
     await database.execute(
       `INSERT INTO history (id, calculator_name, category, inputs, outputs, execution_time_ms)
        VALUES (?, ?, ?, ?, ?, ?)`,
@@ -64,7 +97,9 @@ export async function saveToHistory(
 
 export async function getHistory(limit = 50): Promise<CalculatorHistoryItem[]> {
   const database = await getDb();
-  if (!database) return [];
+  if (!database) {
+    return getWebHistory().slice(0, limit);
+  }
 
   try {
     const rows = await database.select<any[]>(
@@ -85,12 +120,21 @@ export async function getHistory(limit = 50): Promise<CalculatorHistoryItem[]> {
 
 export async function deleteHistoryItem(id: string) {
   const database = await getDb();
-  if (!database) return;
+  if (!database) {
+    const items = getWebHistory().filter(item => item.id !== id);
+    setWebHistory(items);
+    return;
+  }
   await database.execute('DELETE FROM history WHERE id = ?', [id]);
 }
 
 export async function clearHistory() {
   const database = await getDb();
-  if (!database) return;
+  if (!database) {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(WEB_STORAGE_KEY);
+    }
+    return;
+  }
   await database.execute('DELETE FROM history');
 }

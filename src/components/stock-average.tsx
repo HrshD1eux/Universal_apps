@@ -21,7 +21,7 @@ export default function StockAverage() {
   const { toast } = useToast();
 
   const handleCalculate = async () => {
-    if (!isTauri()) return;
+    // runs in tauri or web fallback
     const validEntries = entries
       .filter(e => e.price && e.qty)
       .map(e => ({ price: parseFloat(e.price), qty: parseFloat(e.qty) }));

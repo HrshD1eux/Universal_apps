@@ -34,7 +34,7 @@ export default function MatrixCalculator() {
   };
 
   const handleCalculate = async () => {
-    if (!isTauri()) return;
+    // runs in tauri or web fallback
 
     try {
       const a = matrixA.slice(0, size).map(row => row.slice(0, size));
@@ -168,8 +168,8 @@ export default function MatrixCalculator() {
                          className="grid gap-3 p-8 bg-primary/5 rounded-[3rem] border-2 border-primary/20 shadow-xl"
                          style={{ gridTemplateColumns: `repeat(${result[0].length}, minmax(80px, 1fr))` }}
                       >
-                         {result.map((row, r) => (
-                            row.map((val, c) => (
+                         {result.map((row: any, r: number) => (
+                            row.map((val: any, c: number) => (
                                <div key={`${r}-${c}`} className="h-20 bg-background rounded-2xl flex items-center justify-center text-xl font-black text-primary shadow-sm border border-primary/10 px-4">
                                   {val.toFixed(2)}
                                </div>
@@ -202,8 +202,8 @@ export default function MatrixCalculator() {
                    className="grid gap-3 p-6 bg-primary/5 rounded-[2.5rem] border-2 border-primary/20 shadow-xl"
                    style={{ gridTemplateColumns: `repeat(${result[0].length}, minmax(80px, 1fr))` }}
                 >
-                   {result.map((row, r) => (
-                      row.map((val, c) => (
+                   {result.map((row: any, r: number) => (
+                      row.map((val: any, c: number) => (
                          <div key={`${r}-${c}`} className="h-16 bg-background rounded-2xl flex items-center justify-center text-xl font-black text-primary shadow-sm border border-primary/10 px-4">
                             {val.toFixed(1)}
                          </div>

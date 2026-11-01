@@ -50,7 +50,7 @@ export default function ImageCamouflage() {
     if (currentRect) applyEffect(ctx, currentRect);
   };
 
-  const applyEffect = (ctx: CanvasRenderingContext2D, r: Rect) => {
+  const applyEffect = (ctx: CanvasRenderingContext2D, r: Rect, drawBoundary: boolean = true) => {
     // Prevent InvalidStateError if rectangle has 0 width or height (e.g. during initial drag)
     if (Math.abs(r.w) < 1 || Math.abs(r.h) < 1) return;
 
@@ -81,12 +81,14 @@ export default function ImageCamouflage() {
       ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, x, y, w, h);
       ctx.restore();
     }
-    // Draw boundary
-    ctx.strokeStyle = '#06b6d4';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5, 5]);
-    ctx.strokeRect(r.x, r.y, r.w, r.h);
-    ctx.setLineDash([]);
+    if (drawBoundary) {
+      // Draw UI selection outline only for display
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.strokeRect(r.x, r.y, r.w, r.h);
+      ctx.setLineDash([]);
+    }
   };
 
   useEffect(() => {
@@ -121,12 +123,19 @@ export default function ImageCamouflage() {
   };
 
   const saveImage = () => {
-    if (!canvasRef.current) return;
+    if (!image) return;
+    const cleanCanvas = document.createElement('canvas');
+    cleanCanvas.width = image.width;
+    cleanCanvas.height = image.height;
+    const ctx = cleanCanvas.getContext('2d')!;
+    ctx.drawImage(image, 0, 0);
+    rects.forEach(r => applyEffect(ctx, r, false));
+
     const link = document.createElement('a');
     link.download = 'camouflaged_image.png';
-    link.href = canvasRef.current.toDataURL();
+    link.href = cleanCanvas.toDataURL();
     link.click();
-    toast({ title: "Success", description: "Camouflaged image saved." });
+    toast({ title: "Success", description: "Camouflaged image saved without UI outlines." });
   };
 
   return (

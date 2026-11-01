@@ -91,6 +91,3 @@ export function numberToWordsINR(amount: number | string): string {
   return numberToWords(amount, 'INR');
 }
 
-export function exportToPDF() {
-  window.print();
-}

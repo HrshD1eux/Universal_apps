@@ -25,7 +25,7 @@ export default function FDRDCalculator() {
   const { toast } = useToast();
 
   const handleCalculate = async () => {
-    if (!isTauri()) return;
+    // runs in tauri or web fallback
 
     try {
       const res = await safeInvoke<any>('calculate_fd_rd', {

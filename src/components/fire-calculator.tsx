@@ -25,7 +25,7 @@ export default function FireCalculator() {
   const { toast } = useToast();
 
   const handleCalculate = async () => {
-    if (!isTauri()) return;
+    // runs in tauri or web fallback
     try {
       const res = await safeInvoke<any>('calculate_fire_projection', {
         currentAge: parseInt(currentAge),

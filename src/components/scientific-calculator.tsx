@@ -32,14 +32,7 @@ export default function ScientificCalculator() {
     const handleEvaluate = async () => {
         if (!expression.trim()) return;
 
-        if (!isTauri()) {
-            toast({
-                title: "Desktop Only",
-                description: "This feature is only available within the desktop application window.",
-                variant: "destructive"
-            });
-            return;
-        }
+
         
         setIsCalculating(true);
         setError(null);
@@ -95,20 +88,7 @@ export default function ScientificCalculator() {
 
     return (
         <Card className="max-w-4xl mx-auto border-none shadow-2xl bg-gradient-to-br from-background via-muted/50 to-background overflow-hidden relative">
-            {!isTauri() && (
-                <div className="absolute inset-0 z-50 backdrop-blur-sm bg-background/20 flex flex-col items-center justify-center p-6 text-center">
-                    <div className="bg-background/90 p-8 rounded-3xl shadow-2xl border-2 border-primary/20 max-w-sm">
-                        <Zap className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
-                        <h3 className="text-xl font-bold mb-2">Desktop Environment Required</h3>
-                        <p className="text-sm text-muted-foreground mb-6">
-                            This calculator uses a high-performance expression engine that is only available in the standalone desktop app.
-                        </p>
-                        <Button variant="outline" className="rounded-xl" onClick={() => window.location.reload()}>
-                            Retry Detection
-                        </Button>
-                    </div>
-                </div>
-            )}
+            
             <CardHeader className="bg-primary/5 border-b border-primary/10">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-lg">

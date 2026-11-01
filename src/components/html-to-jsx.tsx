@@ -55,7 +55,7 @@ export default function HtmlToJsx() {
     });
 
     // HTML Comments to JSX Comments
-    jsx = jsx.replace(/<!--(.*?)-->/gs, '{/* $1 */}');
+    jsx = jsx.replace(/<!--([\s\S]*?)-->/g, '{/* $1 */}');
 
     setJsxOutput(jsx);
     toast({ title: "Converted", description: "HTML successfully converted to JSX." });

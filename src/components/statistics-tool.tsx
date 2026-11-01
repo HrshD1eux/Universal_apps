@@ -17,7 +17,7 @@ export default function StatisticsTool() {
   const { toast } = useToast();
 
   const handleCalculate = async () => {
-    if (!isTauri() || !data) return;
+    if (!data) return;
 
     try {
       const numbers = data.split(/[,\s\n]+/).map(n => parseFloat(n)).filter(n => !isNaN(n));

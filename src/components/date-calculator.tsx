@@ -28,7 +28,7 @@ export default function DateCalculator() {
   const { toast } = useToast();
 
   const handleCalculate = async () => {
-    if (!isTauri()) return;
+    // runs in tauri or web fallback
 
     try {
       const res = await safeInvoke<DateMathResult>('calculate_date_math', {

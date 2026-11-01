@@ -20,7 +20,7 @@ export default function GraphingCalculator() {
   const { toast } = useToast();
 
   const handleCalculate = useCallback(async () => {
-    if (!isTauri() || !expression.trim()) return;
+    if (!expression.trim()) return;
     try {
       const res = await safeInvoke<any>('calculate_function_samples', {
         expression,

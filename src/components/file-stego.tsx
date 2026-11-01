@@ -47,7 +47,7 @@ export default function DeepFileStego() {
   };
 
   const handleTauriHostSelect = async () => {
-    if (!isTauri()) return;
+    // runs in tauri or web fallback
     try {
       const { open } = await import('@tauri-apps/plugin-dialog');
       const { readFile } = await import('@tauri-apps/plugin-fs');
@@ -63,7 +63,7 @@ export default function DeepFileStego() {
   };
 
   const handleTauriSecretSelect = async () => {
-    if (!isTauri()) return;
+    // runs in tauri or web fallback
     try {
       const { open } = await import('@tauri-apps/plugin-dialog');
       const { readFile } = await import('@tauri-apps/plugin-fs');

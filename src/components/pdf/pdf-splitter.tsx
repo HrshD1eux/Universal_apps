@@ -63,7 +63,7 @@ export default function PdfSplitter() {
           const [page] = await newPdf.copyPages(pdf, [pageNum - 1]);
           newPdf.addPage(page);
           const pdfBytes = await newPdf.save();
-          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+          const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
@@ -86,7 +86,7 @@ export default function PdfSplitter() {
           const copiedPages = await newPdf.copyPages(pdf, pagesToExtract);
           copiedPages.forEach(p => newPdf.addPage(p));
           const pdfBytes = await newPdf.save();
-          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+          const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;

@@ -84,7 +84,7 @@ export default function PasswordVault() {
       'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits', 'deriveKey']
     );
     return window.crypto.subtle.deriveKey(
-      { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+      { name: 'PBKDF2', salt: salt as any, iterations: 100000, hash: 'SHA-256' },
       keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
     );
   };

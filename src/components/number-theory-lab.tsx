@@ -134,10 +134,10 @@ export default function NumberTheoryLab() {
     let e = BigInt(exp);
     const modVal = BigInt(m);
     
-    while (e > 0n) {
-       if (e % 2n === 1n) res = (res * b) % modVal;
+    while (e > BigInt(0)) {
+       if (e % BigInt(2) === BigInt(1)) res = (res * b) % modVal;
        b = (b * b) % modVal;
-       e = e / 2n;
+       e = e / BigInt(2);
     }
     return res.toString();
   }, [numA, exponent, mod]);

@@ -23,7 +23,7 @@ export default function BaseConverter() {
   const { toast } = useToast();
 
   const handleConvert = async () => {
-    if (!isTauri() || !inputValue) return;
+    if (!inputValue) return;
 
     try {
       const conversions = [];

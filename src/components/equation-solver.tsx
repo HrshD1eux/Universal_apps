@@ -61,7 +61,7 @@ export default function EquationSolver() {
   const { toast } = useToast();
 
   const handleCalculate = async () => {
-    if (!isTauri()) return;
+    // runs in tauri or web fallback
 
     try {
       let res;

@@ -7,15 +7,10 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     unoptimized: true,
   },
-  devIndicators: {
-    buildActivity: false
-  },
+  devIndicators: false,
 };
 
 export default nextConfig;

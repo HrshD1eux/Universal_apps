@@ -22,7 +22,7 @@ export default function BMICalculator() {
   const { toast } = useToast();
 
   const handleCalculate = async () => {
-    if (!isTauri()) return;
+    // runs in tauri or web fallback
 
     try {
         let w = parseFloat(weight);

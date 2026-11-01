@@ -32,7 +32,7 @@ export default function GeometrySuite() {
     setValues(prev => ({ ...prev, [key]: val }));
   };
 
-  const results = useMemo(() => {
+  const results: any = useMemo(() => {
     const v = Object.fromEntries(Object.entries(values).map(([k, val]) => [k, parseFloat(val) || 0]));
     const PI = Math.PI;
 

@@ -57,7 +57,7 @@ export default function MarksCalculator() {
   const toggleTheme = () => setTheme(theme === "light" ? "dark" : "light");
 
   const handleCalculate = async () => {
-    if (!isTauri()) return;
+    // runs in tauri or web fallback
 
     try {
         let marks: number[] = [];

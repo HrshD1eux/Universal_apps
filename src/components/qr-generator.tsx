@@ -30,7 +30,7 @@ export default function QrGenerator() {
     }
     try {
       // Using toDataURL for both PNG and for embedding in SVG/PDF
-      const dataUrl = await QRCode.toDataURL(text, { type: 'png', width: 512, margin: 2 });
+      const dataUrl = await QRCode.toDataURL(text, { type: 'image/png', width: 512, margin: 2 });
       setQrCodeDataUrl(dataUrl);
     } catch (err) {
       console.error(err);
@@ -116,7 +116,7 @@ export default function QrGenerator() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     } else if (format === 'png') {
-        const pngUrl = await QRCode.toDataURL(text, { type: 'png', width: 512, margin: 2 });
+        const pngUrl = await QRCode.toDataURL(text, { type: 'image/png', width: 512, margin: 2 });
         const a = document.createElement('a');
         a.href = pngUrl;
         a.download = 'qrcode.png';
@@ -125,7 +125,7 @@ export default function QrGenerator() {
         document.body.removeChild(a);
     } else if (format === 'pdf') {
         const doc = new jsPDF();
-        const pngUrl = await QRCode.toDataURL(text, { type: 'png', width: 1024, margin: 2 });
+        const pngUrl = await QRCode.toDataURL(text, { type: 'image/png', width: 1024, margin: 2 });
         const pdfWidth = doc.internal.pageSize.getWidth();
         const pdfHeight = doc.internal.pageSize.getHeight();
         const qrSize = pdfWidth * 0.6; // QR code will take 60% of the PDF width
