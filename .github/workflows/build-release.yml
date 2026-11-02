@@ -3,11 +3,84 @@ name: Build & Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
+      - 'V*'
   workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump level (if running manually)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - none
+      custom_version:
+        description: 'Custom version string (e.g. 1.0.0; overrides bump choice)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
 
 jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
+      tag: ${{ steps.set_version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Determine & Bump Version
+        id: set_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            BUMP_TYPE="${{ github.event.inputs.bump }}"
+            CUSTOM="${{ github.event.inputs.custom_version }}"
+            
+            if [ -n "$CUSTOM" ]; then
+              VERSION=$(node scripts/bump-version.mjs "$CUSTOM")
+            else
+              VERSION=$(node scripts/bump-version.mjs "$BUMP_TYPE")
+            fi
+            
+            TAG="v${VERSION}"
+            
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml
+            if ! git diff --cached --quiet; then
+              git commit -m "chore(release): bump version to ${VERSION} [skip ci]"
+              git push origin main || echo "Direct push to main branch failed (branch protection enabled). Proceeding with tag."
+            fi
+            
+            if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+              git tag "$TAG"
+              git push origin "$TAG"
+            fi
+          else
+            RAW_TAG="${{ github.ref_name }}"
+            TAG="${RAW_TAG}"
+            VERSION="${RAW_TAG#v}"
+            VERSION="${VERSION#V}"
+          fi
+          
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
   build-windows:
+    needs: prepare-release
     runs-on: windows-latest
     strategy:
       matrix:
@@ -16,6 +89,8 @@ jobs:
             arch: x64
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare-release.outputs.tag }}
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -40,13 +115,17 @@ jobs:
       - name: Build Tauri app
         run: npm run tauri build -- --target ${{ matrix.target }}
       
-      - name: Upload Windows MSI
+      - name: Upload Windows Artifacts (EXE and MSI)
         uses: actions/upload-artifact@v4
         with:
-          name: windows-msi-${{ matrix.arch }}
-          path: src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
+          name: windows-artifacts-${{ matrix.arch }}
+          path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
+            src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
+          if-no-files-found: warn
 
   build-ubuntu:
+    needs: prepare-release
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -54,6 +133,8 @@ jobs:
           - target: x86_64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare-release.outputs.tag }}
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -64,7 +145,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libayatana-appindicator3-dev librsvg2-dev
       
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -83,13 +164,17 @@ jobs:
       - name: Build Tauri app
         run: npm run tauri build -- --target ${{ matrix.target }}
       
-      - name: Upload Ubuntu DEB
+      - name: Upload Ubuntu Artifacts (DEB and AppImage)
         uses: actions/upload-artifact@v4
         with:
-          name: ubuntu-deb-x64
-          path: src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
+          name: ubuntu-artifacts
+          path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
+            src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
+          if-no-files-found: warn
 
   build-macos:
+    needs: prepare-release
     runs-on: macos-latest
     strategy:
       matrix:
@@ -100,6 +185,8 @@ jobs:
             arch: arm64
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare-release.outputs.tag }}
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -124,18 +211,21 @@ jobs:
       - name: Build Tauri app
         run: npm run tauri build -- --target ${{ matrix.target }}
       
-      - name: Upload macOS DMG
+      - name: Upload macOS Artifacts (DMG)
         uses: actions/upload-artifact@v4
         with:
-          name: macos-dmg-${{ matrix.arch }}
-          path: src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          name: macos-artifacts-${{ matrix.arch }}
+          path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          if-no-files-found: warn
 
   create-release:
-    needs: [build-windows, build-ubuntu, build-macos]
+    needs: [prepare-release, build-windows, build-ubuntu, build-macos]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare-release.outputs.tag }}
       
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -143,17 +233,23 @@ jobs:
           path: artifacts
       
       - name: List artifacts
-        run: find artifacts -type f \( -name '*.msi' -o -name '*.deb' -o -name '*.dmg' \) | sort
+        run: |
+          echo "=== Collected Release Artifacts ==="
+          find artifacts -type f \( -name '*.exe' -o -name '*.msi' -o -name '*.deb' -o -name '*.AppImage' -o -name '*.dmg' \) | sort
       
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ needs.prepare-release.outputs.tag }}
+          name: "Universal Apps ${{ needs.prepare-release.outputs.tag }}"
           draft: false
           prerelease: false
           generate_release_notes: true
           files: |
+            artifacts/**/*.exe
             artifacts/**/*.msi
             artifacts/**/*.deb
+            artifacts/**/*.AppImage
             artifacts/**/*.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
