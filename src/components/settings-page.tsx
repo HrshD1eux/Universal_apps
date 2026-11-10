@@ -3,10 +3,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Palette, Globe, Coins, Check, Moon, Sun, Monitor } from 'lucide-react';
+import { Settings, Palette, Coins, Check, Moon, Sun, RefreshCw, ExternalLink, ShieldCheck } from 'lucide-react';
 import { useSettings } from '@/context/settings-context';
 import { useLanguage } from '@/context/language-context';
 import { motion } from 'framer-motion';
+import { APP_VERSION, GITHUB_RELEASES_URL } from '@/lib/version';
 
 export default function SettingsPage() {
   const { theme, setTheme, currency, setCurrency, mode, setMode } = useSettings();
@@ -27,6 +28,10 @@ export default function SettingsPage() {
     { id: 'GBP', name: 'British Pound (£)' },
   ] as const;
 
+  const triggerUpdateCheck = () => {
+    window.dispatchEvent(new CustomEvent('check-for-updates-manual'));
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="flex items-center gap-4 mb-8">
@@ -35,7 +40,7 @@ export default function SettingsPage() {
         </div>
         <div>
           <h1 className="text-4xl font-black tracking-tight">{t('settings')}</h1>
-          <p className="text-muted-foreground font-medium">Customize your experience and preferences.</p>
+          <p className="text-muted-foreground font-medium">Customize your preferences and manage application updates.</p>
         </div>
       </div>
 
@@ -78,67 +83,110 @@ export default function SettingsPage() {
             <div className="space-y-3">
               <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Theme Color</label>
               <div className="grid grid-cols-1 gap-2">
-              {themes.map((tItem) => (
-                <button
-                  key={tItem.id}
-                  onClick={() => setTheme(tItem.id)}
-                  className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
-                    theme === tItem.id 
-                      ? 'bg-primary/10 border-primary shadow-lg shadow-primary/10' 
-                      : 'bg-background border-transparent hover:border-primary/30'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-6 h-6 rounded-full shadow-inner" 
-                      style={{ backgroundColor: tItem.color }} 
-                    />
-                    <span className="font-bold text-sm">{tItem.name}</span>
-                  </div>
-                  {theme === tItem.id && (
-                    <motion.div layoutId="check-theme">
-                      <Check className="w-5 h-5 text-primary" />
-                    </motion.div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-        {/* Currency & Localization */}
-        <Card className="border-none shadow-xl bg-muted/30 overflow-hidden">
-          <CardHeader className="border-b bg-background/50">
-            <div className="flex items-center gap-2">
-              <Coins className="w-5 h-5 text-primary" />
-              <CardTitle>{t('baseCurrency')}</CardTitle>
-            </div>
-            <CardDescription>Select your preferred default currency.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 space-y-4">
-            <div className="grid grid-cols-1 gap-2">
-              {currencies.map((curr) => (
-                <button
-                  key={curr.id}
-                  onClick={() => setCurrency(curr.id)}
-                  className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
-                    currency === curr.id 
-                      ? 'bg-primary/10 border-primary shadow-lg shadow-primary/10' 
-                      : 'bg-background border-transparent hover:border-primary/30'
-                  }`}
-                >
-                  <span className="font-bold text-sm">{curr.name}</span>
-                  {currency === curr.id && (
-                    <motion.div layoutId="check-curr">
-                      <Check className="w-5 h-5 text-primary" />
-                    </motion.div>
-                  )}
-                </button>
-              ))}
+                {themes.map((tItem) => (
+                  <button
+                    key={tItem.id}
+                    onClick={() => setTheme(tItem.id)}
+                    className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
+                      theme === tItem.id 
+                        ? 'bg-primary/10 border-primary shadow-lg shadow-primary/10' 
+                        : 'bg-background border-transparent hover:border-primary/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-6 h-6 rounded-full shadow-inner" 
+                        style={{ backgroundColor: tItem.color }} 
+                      />
+                      <span className="font-bold text-sm">{tItem.name}</span>
+                    </div>
+                    {theme === tItem.id && (
+                      <motion.div layoutId="check-theme">
+                        <Check className="w-5 h-5 text-primary" />
+                      </motion.div>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Currency & Localization */}
+        <div className="space-y-8">
+          <Card className="border-none shadow-xl bg-muted/30 overflow-hidden">
+            <CardHeader className="border-b bg-background/50">
+              <div className="flex items-center gap-2">
+                <Coins className="w-5 h-5 text-primary" />
+                <CardTitle>{t('baseCurrency')}</CardTitle>
+              </div>
+              <CardDescription>Select your preferred default currency.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div className="grid grid-cols-1 gap-2">
+                {currencies.map((curr) => (
+                  <button
+                    key={curr.id}
+                    onClick={() => setCurrency(curr.id)}
+                    className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
+                      currency === curr.id 
+                        ? 'bg-primary/10 border-primary shadow-lg shadow-primary/10' 
+                        : 'bg-background border-transparent hover:border-primary/30'
+                    }`}
+                  >
+                    <span className="font-bold text-sm">{curr.name}</span>
+                    {currency === curr.id && (
+                      <motion.div layoutId="check-curr">
+                        <Check className="w-5 h-5 text-primary" />
+                      </motion.div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Software Updates & Info */}
+          <Card className="border-none shadow-xl bg-muted/30 overflow-hidden">
+            <CardHeader className="border-b bg-background/50">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-primary" />
+                <CardTitle>Updates & Version</CardTitle>
+              </div>
+              <CardDescription>Keep Universal Apps secure and up-to-date.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div className="p-4 rounded-2xl bg-background border flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">Installed Version</span>
+                  <span className="font-mono font-bold text-base text-foreground">v{APP_VERSION}</span>
+                </div>
+                <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                  Production Build
+                </span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-3 pt-1">
+                <Button
+                  onClick={triggerUpdateCheck}
+                  className="w-full sm:flex-1 h-11 rounded-xl font-bold text-xs gap-2 shadow-md"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Check for Updates</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => window.open(GITHUB_RELEASES_URL, '_blank')}
+                  className="w-full sm:flex-1 h-11 rounded-xl font-bold text-xs gap-2 border"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Release Notes</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

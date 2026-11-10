@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universal Apps — Offline Desktop & Web Utilities</title>
+  <meta name="description" content="A fast, private, offline-first collection of 75 essential tools for calculations, conversions, developer utilities, and PDF processing.">
+  <link rel="icon" type="image/png" href="icon.png">
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- Top Announcement Bar -->
+  <div class="bg-blue-600 text-white text-xs font-semibold py-2 px-4 text-center">
+    <span>Universal Apps v0.1.2 is now available for Windows, macOS, Linux, and Web.</span>
+    <a href="#downloads" class="underline ml-2 hover:opacity-90">View Downloads &darr;</a>
+  </div>
+
+  <!-- Navbar -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 transition-all">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="icon.png" alt="Universal Apps Logo" class="w-8 h-8 rounded-lg shadow-sm">
+        <a href="#" class="font-extrabold text-lg tracking-tight text-slate-900">Universal Apps</a>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
+        <a href="#features" class="hover:text-blue-600 transition-colors">Features</a>
+        <a href="#tools" class="hover:text-blue-600 transition-colors">Tools (75)</a>
+        <a href="#downloads" class="hover:text-blue-600 transition-colors">Downloads</a>
+        <a href="#faq" class="hover:text-blue-600 transition-colors">FAQ</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/HrshD1eux/Universal_apps" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-slate-700 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-1.5 border border-slate-200">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          <span>GitHub</span>
+        </a>
+        <a href="#downloads" class="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all shadow-sm">
+          Download
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative pt-16 pb-20 px-4 sm:px-6 overflow-hidden border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
+    <div class="max-w-4xl mx-auto text-center space-y-6">
+      
+      <!-- Version Tag -->
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold tracking-wide">
+        <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+        <span id="hero-version-text">Universal Apps v0.1.2</span>
+        <span class="text-slate-400">•</span>
+        <span>100% Offline-First</span>
+      </div>
+
+      <!-- Main Headline -->
+      <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 leading-tight">
+        All your daily tools in one <br class="hidden sm:inline">
+        <span class="text-blue-600">fast, private toolkit.</span>
+      </h1>
+
+      <!-- Subheadline -->
+      <p class="text-lg sm:text-xl text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
+        75 verified calculators, converters, developer tools, and PDF utilities. Runs directly on your device with zero tracking, no accounts, and no subscriptions.
+      </p>
+
+      <!-- Primary Action Buttons -->
+      <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
+        <a id="primary-os-btn" href="https://github.com/HrshD1eux/Universal_apps/releases/latest" class="w-full sm:w-auto h-12 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span id="primary-os-text">Download for Windows (.exe)</span>
+        </a>
+        <a href="#downloads" class="w-full sm:w-auto h-12 px-6 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-sm flex items-center justify-center gap-2 border border-slate-300 shadow-sm transition-all">
+          <span>All Platforms & Web</span>
+        </a>
+      </div>
+
+      <!-- Trust Badges -->
+      <div class="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-slate-500">
+        <span class="flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          No Ads or Trackers
+        </span>
+        <span class="flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Works Offline
+        </span>
+        <span class="flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Open Source (MIT)
+        </span>
+        <span class="flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Under 15MB Binary
+        </span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Core Principles Section (No Exaggeration) -->
+  <section id="features" class="py-16 px-4 sm:px-6 max-w-6xl mx-auto">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <h2 class="text-xs font-black uppercase tracking-wider text-blue-600 mb-2">Designed for Utility</h2>
+      <p class="text-2xl sm:text-3xl font-extrabold text-slate-900">Practical tools built for real day-to-day work.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Card 1 -->
+      <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900">Offline & In-Memory</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">
+          Your data never leaves your computer. Calculations, QR code decoding from clipboard, and PDF processing run entirely in local memory.
+        </p>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900">Zero Bloat & Clean Math</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">
+          Thoroughly audited and pruned of phantom features and simulations. Every calculator has verified mathematical models and fast local execution.
+        </p>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900">Desktop + Web Fallback</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">
+          Packaged with Tauri for low memory footprint on Windows, Mac, and Linux, with native JavaScript client fallbacks when run in a browser.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Downloads Section -->
+  <section id="downloads" class="py-16 px-4 sm:px-6 bg-slate-100/70 border-y border-slate-200">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center max-w-xl mx-auto mb-12">
+        <h2 class="text-xs font-black uppercase tracking-wider text-blue-600 mb-2">Platform Downloads</h2>
+        <p class="text-2xl sm:text-3xl font-extrabold text-slate-900">Get Universal Apps for your system</p>
+        <p class="text-sm text-slate-600 mt-2 font-medium">Standalone installers and portable packages compiled directly via GitHub Actions.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Windows Download Card -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+              </div>
+              <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">Windows 10 / 11</span>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-slate-900">Windows</h3>
+              <p class="text-xs text-slate-500 mt-1">x64 architecture (64-bit)</p>
+            </div>
+            <ul class="text-xs text-slate-600 space-y-2 pt-2 border-t border-slate-100 font-medium">
+              <li class="flex items-center gap-2">✓ NSIS Installer (.exe)</li>
+              <li class="flex items-center gap-2">✓ Windows Installer (.msi)</li>
+              <li class="flex items-center gap-2">✓ Auto-updating enabled</li>
+            </ul>
+          </div>
+
+          <div class="space-y-2 pt-4">
+            <a id="win-exe-link" href="https://github.com/HrshD1eux/Universal_apps/releases/latest" class="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Download Setup (.exe)</span>
+            </a>
+            <a id="win-msi-link" href="https://github.com/HrshD1eux/Universal_apps/releases/latest" class="w-full h-9 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-slate-200 transition-all">
+              <span>Download MSI Package (.msi)</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- macOS Download Card -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 7.05c.61-.75 1.04-1.8 1.01-2.85-.9.04-2 .6-2.65 1.35-.58.67-.99 1.74-.95 2.78.99.08 1.98-.53 2.59-1.28z"/></svg>
+              </div>
+              <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">macOS 11+</span>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-slate-900">macOS</h3>
+              <p class="text-xs text-slate-500 mt-1">Apple Silicon (M1/M2/M3) & Intel</p>
+            </div>
+            <ul class="text-xs text-slate-600 space-y-2 pt-2 border-t border-slate-100 font-medium">
+              <li class="flex items-center gap-2">✓ DMG Disk Image (.dmg)</li>
+              <li class="flex items-center gap-2">✓ Universal Binary support</li>
+              <li class="flex items-center gap-2">✓ Native Dark / Light mode</li>
+            </ul>
+          </div>
+
+          <div class="space-y-2 pt-4">
+            <a id="mac-dmg-link" href="https://github.com/HrshD1eux/Universal_apps/releases/latest" class="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Download Disk Image (.dmg)</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Linux & Web Download Card -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              </div>
+              <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">Linux & Web</span>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-slate-900">Linux & Web App</h3>
+              <p class="text-xs text-slate-500 mt-1">Debian / Ubuntu / Any Web Browser</p>
+            </div>
+            <ul class="text-xs text-slate-600 space-y-2 pt-2 border-t border-slate-100 font-medium">
+              <li class="flex items-center gap-2">✓ Debian Package (.deb)</li>
+              <li class="flex items-center gap-2">✓ Portable AppImage (.AppImage)</li>
+              <li class="flex items-center gap-2">✓ Online Web Edition (No install)</li>
+            </ul>
+          </div>
+
+          <div class="space-y-2 pt-4">
+            <a id="linux-deb-link" href="https://github.com/HrshD1eux/Universal_apps/releases/latest" class="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Download Linux (.deb)</span>
+            </a>
+            <a href="https://universal-apps.vercel.app" target="_blank" rel="noopener noreferrer" class="w-full h-9 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
+              <span>Launch Live Web Edition &rarr;</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Release Link Footnote -->
+      <div class="text-center mt-8 text-xs text-slate-500">
+        <span>Looking for previous releases or source code archives?</span>
+        <a href="https://github.com/HrshD1eux/Universal_apps/releases" target="_blank" class="text-blue-600 font-bold ml-1 hover:underline">Browse all GitHub releases &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Complete 75 Tools Directory -->
+  <section id="tools" class="py-16 px-4 sm:px-6 max-w-6xl mx-auto">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+      <div>
+        <h2 class="text-xs font-black uppercase tracking-wider text-blue-600 mb-1">Catalog</h2>
+        <p class="text-2xl sm:text-3xl font-extrabold text-slate-900">75 Verified Tools Included</p>
+        <p class="text-sm text-slate-600 mt-1">Filter or search through all available utilities.</p>
+      </div>
+
+      <!-- Search Input -->
+      <div class="w-full md:w-72">
+        <input 
+          id="tool-search" 
+          type="text" 
+          placeholder="Search tools (e.g. EMI, QR, PDF)..." 
+          class="w-full h-11 px-4 text-xs font-medium rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+        >
+      </div>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="flex flex-wrap gap-2 mb-8" id="category-filters">
+      <button data-cat="all" class="cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm transition-all">All (75)</button>
+      <button data-cat="finance" class="cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all">Finance (20)</button>
+      <button data-cat="math" class="cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all">Math (14)</button>
+      <button data-cat="dev" class="cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all">Developer (16)</button>
+      <button data-cat="pdf" class="cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all">PDF Studio (12)</button>
+      <button data-cat="utility" class="cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all">Utility & Design (13)</button>
+    </div>
+
+    <!-- Tool Grid -->
+    <div id="tools-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Tool cards populated by JS -->
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="py-16 px-4 sm:px-6 bg-white border-t border-slate-200">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center max-w-xl mx-auto mb-12">
+        <h2 class="text-xs font-black uppercase tracking-wider text-blue-600 mb-2">Frequently Asked Questions</h2>
+        <p class="text-2xl sm:text-3xl font-extrabold text-slate-900">Direct answers to common questions.</p>
+      </div>
+
+      <div class="space-y-4">
+        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200">
+          <h3 class="text-base font-bold text-slate-900">Does it really work 100% offline?</h3>
+          <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">
+            Yes. The desktop app is powered by Tauri and Rust with local HTML/JS. No internet connection is needed to calculate loans, decode QR codes, parse JSON, or merge PDFs. PDF workers are bundled locally inside the binary.
+          </p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200">
+          <h3 class="text-base font-bold text-slate-900">How does the PDF Merger handle mismatched page sizes?</h3>
+          <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">
+            The Universal PDF Merger includes native vector page standardization. It scales and centers mixed-dimension pages (e.g. A4 portrait mixed with wide scanned documents) into uniform A4 or Letter sheets so pages never jump from tiny to huge in viewers.
+          </p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200">
+          <h3 class="text-base font-bold text-slate-900">How do software updates work?</h3>
+          <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">
+            The app features an automated GitHub Release update checker. Whenever a new version is published to GitHub Releases, an in-app popup notifies you with a direct download link and release highlights.
+          </p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200">
+          <h3 class="text-base font-bold text-slate-900">Is this project free and open source?</h3>
+          <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">
+            Yes, Universal Apps is licensed under the MIT License. The complete source code, build scripts, and workflows are public on GitHub.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12 px-4 sm:px-6 bg-slate-900 text-slate-400 text-xs border-t border-slate-800">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+      <div class="flex items-center gap-3">
+        <img src="icon.png" alt="Logo" class="w-6 h-6 rounded">
+        <span class="text-slate-200 font-bold">Universal Apps</span>
+        <span>• © 2026 HrshD1eux. Open Source (MIT).</span>
+      </div>
+
+      <div class="flex items-center gap-6 font-semibold">
+        <a href="https://github.com/HrshD1eux/Universal_apps" target="_blank" class="hover:text-white transition-colors">GitHub Repository</a>
+        <a href="https://github.com/HrshD1eux/Universal_apps/releases" target="_blank" class="hover:text-white transition-colors">Releases</a>
+        <a href="https://github.com/HrshD1eux/Universal_apps/issues" target="_blank" class="hover:text-white transition-colors">Report Issue</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Script -->
+  <script>
+    // 75 Verified Tools Catalog
+    const TOOLS = [
+      // Finance (20)
+      { name: "EMI Calculator", cat: "finance", desc: "Calculate loan EMIs, interest breakdowns, and amortization." },
+      { name: "Compound Interest", cat: "finance", desc: "Compound returns with custom frequencies and deposits." },
+      { name: "GST Calculator", cat: "finance", desc: "Inclusive and exclusive Goods and Services Tax computations." },
+      { name: "SIP Calculator", cat: "finance", desc: "Systematic Investment Plan maturity and return projections." },
+      { name: "Step-Up SIP", cat: "finance", desc: "Calculate compounding wealth with annual SIP step-up percentages." },
+      { name: "Income Tax (India)", cat: "finance", desc: "Old vs New regime tax liability comparisons under Section 115BAC." },
+      { name: "FIRE Calculator", cat: "finance", desc: "Financial Independence and Early Retirement timeline calculations." },
+      { name: "Stock Average Calculator", cat: "finance", desc: "Multi-tranche stock position averaging and target cost calculator." },
+      { name: "Discount Calculator", cat: "finance", desc: "Markdowns, sales taxes, and double discounts." },
+      { name: "Salary Calculator", cat: "finance", desc: "Gross-to-net pay breakdown with deductions and allowances." },
+      { name: "Tip Calculator", cat: "finance", desc: "Bill splitting and percentage gratuity." },
+      { name: "ROI Calculator", cat: "finance", desc: "Return on Investment and annualized profitability rate." },
+      { name: "FD & RD Calculator", cat: "finance", desc: "Fixed and Recurring Deposit interest payout simulations." },
+      { name: "PPF Calculator", cat: "finance", desc: "Public Provident Fund 15-year compounding calculations." },
+      { name: "Inflation Calculator", cat: "finance", desc: "Purchasing power loss and future cost projections." },
+      { name: "NPS Calculator", cat: "finance", desc: "National Pension System annuity and corpus estimation." },
+      { name: "Goal Planner", cat: "finance", desc: "Target-based savings roadmap with inflation adjustment." },
+      { name: "Local Byaj Calculator", cat: "finance", desc: "Traditional Indian village simple interest calculations." },
+      { name: "Profit & Loss", cat: "finance", desc: "Trade margin, markup, and breakeven point analyzer." },
+      { name: "Unit Price Division", cat: "finance", desc: "Compare bulk vs individual unit pricing efficiently." },
+
+      // Mathematics (14)
+      { name: "Scientific Calculator", cat: "math", desc: "Trigonometric, logarithmic, and power expressions with history." },
+      { name: "Graphing Calculator", cat: "math", desc: "Multi-function 2D curve plotting and coordinate tracing." },
+      { name: "Matrix Operations", cat: "math", desc: "Determinant, inversion, multiplication, and transpose." },
+      { name: "Equation Solver", cat: "math", desc: "Linear systems and quadratic polynomial root finding." },
+      { name: "Calculus Studio", cat: "math", desc: "Numerical differentiation, limits, and Simpson integrals." },
+      { name: "Complex Numbers Studio", cat: "math", desc: "Arithmetic, polar representation, and phasor conversions." },
+      { name: "Number Theory Lab", cat: "math", desc: "GCD, LCM, modular exponentiation, and prime factorization." },
+      { name: "Geometry Suite", cat: "math", desc: "2D polygons, coordinate geometry, and 3D volume calculations." },
+      { name: "Probability Pro", cat: "math", desc: "Combinatorics (nCr, nPr), dice, coins, and Bayes theorem." },
+      { name: "Sequence Solver", cat: "math", desc: "Arithmetic, geometric, and Fibonacci series analyzer." },
+      { name: "Fraction Calculator", cat: "math", desc: "Exact fraction arithmetic with step-by-step reductions." },
+      { name: "Trigonometry Solver", cat: "math", desc: "Right-angle triangle trigonometry and law of sines/cosines." },
+      { name: "Statistics Suite", cat: "math", desc: "Mean, median, mode, standard deviation, and variance." },
+      { name: "Statistical Inference", cat: "math", desc: "Z-test hypothesis evaluation and confidence intervals." },
+
+      // Developer Tools (16)
+      { name: "JWT Decoder", cat: "dev", desc: "Decode headers, claims, and verify timestamps without secrets." },
+      { name: "JSON to TypeScript", cat: "dev", desc: "Convert JSON payloads into strict TypeScript interfaces." },
+      { name: "Regex Tester", cat: "dev", desc: "Live regular expression testing with group match highlights." },
+      { name: "Hash Generator", cat: "dev", desc: "Generate SHA-256, SHA-512, MD5, and SHA-1 checksums." },
+      { name: "Base64 Converter", cat: "dev", desc: "Encode and decode raw strings, binaries, and data URLs." },
+      { name: "URL Converter", cat: "dev", desc: "Percent-encode and decode URI components and query strings." },
+      { name: "Text Encryptor", cat: "dev", desc: "Local AES-GCM 256 encryption with PBKDF2 key derivation." },
+      { name: "Password Generator", cat: "dev", desc: "Cryptographically secure random passwords and passphrases." },
+      { name: "Password Vault", cat: "dev", desc: "Encrypted offline account and secret store in local storage." },
+      { name: "Code Snippet Manager", cat: "dev", desc: "Save, tag, and copy reusable code snippets with syntax support." },
+      { name: "JSON Formatter & Validator", cat: "dev", desc: "Beautify, minify, and inspect malformed JSON payloads." },
+      { name: "Markdown Previewer", cat: "dev", desc: "Live Markdown rendering with GFM tables and PDF export." },
+      { name: "Text Utilities", cat: "dev", desc: "Case conversions, word counting, line sorting, and deduplication." },
+      { name: "HTML to JSX", cat: "dev", desc: "Convert standard HTML tags, self-closers, and styles into JSX." },
+      { name: "Steganography", cat: "dev", desc: "Hide secret text messages inside PNG image pixels." },
+      { name: "Deep File Stego", cat: "dev", desc: "Pack zip or executable files into image carrier files." },
+
+      // PDF Studio (12)
+      { name: "PDF Merger Pro", cat: "pdf", desc: "Combine multiple PDFs with smart A4 page standardization." },
+      { name: "PDF Splitter & Extractor", cat: "pdf", desc: "Split documents by ranges or extract individual pages to ZIP." },
+      { name: "PDF to JPG", cat: "pdf", desc: "Convert PDF pages into high-resolution JPG images." },
+      { name: "JPG to PDF", cat: "pdf", desc: "Pack multiple images into a clean standardized PDF." },
+      { name: "Visual PDF Editor", cat: "pdf", desc: "Add text annotations, rectangles, and signatures directly." },
+      { name: "PDF Watermark Pro", cat: "pdf", desc: "Apply diagonal and repeated text stamps across all pages." },
+      { name: "PDF Page Numberer", cat: "pdf", desc: "Stamp custom page numbers with positioning and format control." },
+      { name: "PDF Pages Remover", cat: "pdf", desc: "Delete unwanted pages or blanks from existing documents." },
+      { name: "PDF Size Compressor", cat: "pdf", desc: "Reduce document file size with canvas downscaling." },
+      { name: "Content Protection Pro", cat: "pdf", desc: "Apply standard passwords and permission restrictions." },
+      { name: "PDF Password Remover", cat: "pdf", desc: "Remove passwords from unlocked files for easier archiving." },
+      { name: "PDF Page Rotator", cat: "pdf", desc: "Rotate orientation of individual or all document pages." },
+
+      // Utility & Health (13)
+      { name: "Offline QR Code Scanner", cat: "utility", desc: "Paste QR image directly from clipboard (Ctrl+V) or upload file." },
+      { name: "QR Code Generator", cat: "utility", desc: "Generate custom QR codes with PNG, SVG, and PDF downloads." },
+      { name: "EXIF Metadata Stripper", cat: "utility", desc: "Scrub GPS coordinates, camera specs, and dates from photos." },
+      { name: "Image Camouflage", cat: "utility", desc: "Redact sensitive document zones with blur or pixelation." },
+      { name: "URL Cleaner", cat: "utility", desc: "Strip UTM tracking tags and marketing parameters from links." },
+      { name: "Unit Converter", cat: "utility", desc: "Length, mass, temperature, speed, area, and digital storage." },
+      { name: "Timezone Converter", cat: "utility", desc: "Compare business hours across global cities simultaneously." },
+      { name: "Age Calculator", cat: "utility", desc: "Calculate exact age in years, months, days, and total hours." },
+      { name: "Date Math Calculator", cat: "utility", desc: "Add or subtract days, workdays, and find date differences." },
+      { name: "BMI Calculator", cat: "utility", desc: "Body Mass Index classification and healthy weight ranges." },
+      { name: "BMR & TDEE", cat: "utility", desc: "Basal Metabolic Rate and daily caloric maintenance needs." },
+      { name: "Body Fat Calculator", cat: "utility", desc: "US Navy body circumference fat percentage calculator." },
+      { name: "Marks & GPA Calculator", cat: "utility", desc: "Weighted grade point averages and percentage conversions." }
+    ];
+
+    // Render Tools
+    const grid = document.getElementById('tools-grid');
+    const searchInput = document.getElementById('tool-search');
+    let currentCat = 'all';
+
+    function renderTools() {
+      const query = (searchInput.value || '').toLowerCase().trim();
+      const filtered = TOOLS.filter(t => {
+        const matchesCat = currentCat === 'all' || t.cat === currentCat;
+        const matchesQuery = !query || t.name.toLowerCase().includes(query) || t.desc.toLowerCase().includes(query);
+        return matchesCat && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-400">
+            <p class="text-base font-bold">No matching tools found.</p>
+            <p class="text-xs mt-1">Try another keyword or clear your search.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(t => `
+        <div class="p-4 bg-white rounded-xl border border-slate-200 hover:border-blue-400 hover:shadow-sm transition-all flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <h4 class="font-bold text-sm text-slate-900">${t.name}</h4>
+              <span class="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">${t.cat}</span>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed">${t.desc}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Category button clicks
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cat-btn').forEach(b => {
+          b.className = 'cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all';
+        });
+        btn.className = 'cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm transition-all';
+        currentCat = btn.getAttribute('data-cat');
+        renderTools();
+      });
+    });
+
+    searchInput.addEventListener('input', renderTools);
+    renderTools();
+
+    // OS Detection for Primary Button
+    function setupOSButton() {
+      const ua = navigator.userAgent.toLowerCase();
+      const btnText = document.getElementById('primary-os-text');
+      const btn = document.getElementById('primary-os-btn');
+
+      if (ua.includes('mac')) {
+        btnText.innerText = 'Download for macOS (.dmg)';
+      } else if (ua.includes('linux')) {
+        btnText.innerText = 'Download for Linux (.deb)';
+      } else {
+        btnText.innerText = 'Download for Windows (.exe)';
+      }
+    }
+    setupOSButton();
+
+    // Fetch Latest Release Assets Live from GitHub API
+    async function fetchLatestRelease() {
+      try {
+        const res = await fetch('https://api.github.com/repos/HrshD1eux/Universal_apps/releases/latest');
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        if (data.tag_name) {
+          const v = data.tag_name;
+          document.getElementById('hero-version-text').innerText = `Universal Apps ${v}`;
+        }
+
+        if (Array.isArray(data.assets)) {
+          const exe = data.assets.find(a => a.name.endsWith('.exe'));
+          const msi = data.assets.find(a => a.name.endsWith('.msi'));
+          const dmg = data.assets.find(a => a.name.endsWith('.dmg'));
+          const deb = data.assets.find(a => a.name.endsWith('.deb'));
+
+          if (exe) document.getElementById('win-exe-link').href = exe.browser_download_url;
+          if (msi) document.getElementById('win-msi-link').href = msi.browser_download_url;
+          if (dmg) document.getElementById('mac-dmg-link').href = dmg.browser_download_url;
+          if (deb) document.getElementById('linux-deb-link').href = deb.browser_download_url;
+
+          // Update primary hero button link
+          const ua = navigator.userAgent.toLowerCase();
+          const primaryBtn = document.getElementById('primary-os-btn');
+          if (ua.includes('mac') && dmg) {
+            primaryBtn.href = dmg.browser_download_url;
+          } else if (ua.includes('linux') && deb) {
+            primaryBtn.href = deb.browser_download_url;
+          } else if (exe) {
+            primaryBtn.href = exe.browser_download_url;
+          }
+        }
+      } catch (e) {
+        // Fallback remains to latest release page
+      }
+    }
+    fetchLatestRelease();
+  </script>
+</body>
+</html>

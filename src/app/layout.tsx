@@ -2,14 +2,14 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import Navbar from '@/components/navbar';
-
-export const metadata: Metadata = {
-  title: 'All in One Apps by Harsh',
-  description: 'A sleek, modern, and intuitive desktop application featuring a collection of essential calculators. Built for speed and simplicity.',
-};
-
+import UpdateModal from '@/components/update-modal';
 import { LanguageProvider } from '@/context/language-context';
 import { SettingsProvider } from '@/context/settings-context';
+
+export const metadata: Metadata = {
+  title: 'Universal Apps by Harsh',
+  description: 'An offline-first desktop and web utility suite with 75 verified tools for calculators, converters, developer utilities, and PDF processing.',
+};
 
 export default function RootLayout({
   children,
@@ -31,6 +31,7 @@ export default function RootLayout({
               {children}
             </main>
             <Toaster />
+            <UpdateModal />
           </LanguageProvider>
         </SettingsProvider>
       </body>
