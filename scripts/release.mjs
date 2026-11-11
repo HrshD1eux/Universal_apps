@@ -38,56 +38,9 @@ try {
   console.log(`Tag ${tag} already exists or continuing.`);
 }
 
-// 6. Push commit and tag to GitHub
+// 6. Push commit and tag to GitHub (triggers build-release.yml via tag push)
 console.log(`📡 Pushing to GitHub (origin main & tags)...`);
-try {
-  execSync('git push origin main --follow-tags', { stdio: 'inherit' });
-} catch (e) {
-  console.warn('Push warning (check connection):', e.message);
-}
+execSync('git push origin main --follow-tags', { stdio: 'inherit' });
 
-// 7. Auto-trigger GitHub Actions release workflow
-function getGitHubToken() {
-  try {
-    const creds = execSync('git credential fill', {
-      input: 'protocol=https\nhost=github.com\n',
-      encoding: 'utf8',
-    });
-    const match = creds.match(/password=(.+)/);
-    return match ? match[1].trim() : null;
-  } catch {
-    return process.env.GITHUB_TOKEN || null;
-  }
-}
-
-const token = getGitHubToken();
-if (token) {
-  console.log(`⚡ Dispatching GitHub Actions Build & Release workflow...`);
-  try {
-    const res = await fetch('https://api.github.com/repos/HrshD1eux/Universal_apps/actions/workflows/build-release.yml/dispatches', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github+json',
-        'User-Agent': 'Node'
-      },
-      body: JSON.stringify({
-        ref: 'main',
-        inputs: {
-          bump: 'none',
-          custom_version: newVersion
-        }
-      })
-    });
-    if (res.status === 204) {
-      console.log(`✅ GitHub Actions release pipeline started successfully!`);
-    } else {
-      console.log(`Workflow dispatch response: ${res.status}`);
-    }
-  } catch (err) {
-    console.warn(`Could not dispatch workflow via API:`, err.message);
-  }
-}
-
-console.log(`\n🎉 Release ${tag} is queued and building in GitHub Actions!`);
+console.log(`\n🎉 Release ${tag} pushed! GitHub Actions Build & Release is now building binaries.`);
 console.log(`🔗 Monitor live build: https://github.com/HrshD1eux/Universal_apps/actions/workflows/build-release.yml\n`);
