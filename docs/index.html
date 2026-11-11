@@ -44,7 +44,7 @@
 
   <!-- Top Announcement Bar -->
   <div class="bg-blue-600 text-white text-xs font-semibold py-2 px-4 text-center">
-    <span>Universal Apps v0.1.3 is now available for Windows, macOS, Linux, and Web.</span>
+    <span id="announcement-version-text">Universal Apps v0.1.4 is now available for Windows, macOS, Linux, and Web.</span>
     <a href="#downloads" class="underline ml-2 hover:opacity-90">View Downloads &darr;</a>
   </div>
 
@@ -542,6 +542,8 @@
           const v = data.tag_name;
           const heroEl = document.getElementById('hero-version-text');
           if (heroEl) heroEl.innerText = `Universal Apps ${v}`;
+          const annEl = document.getElementById('announcement-version-text');
+          if (annEl) annEl.innerText = `Universal Apps ${v} is now available for Windows, macOS, Linux, and Web.`;
         }
 
         if (Array.isArray(data.assets)) {

@@ -1,4 +1,4 @@
-import { APP_VERSION, GITHUB_API_LATEST_RELEASE, GITHUB_RELEASES_URL } from './version';
+import { APP_VERSION, getAppVersion, GITHUB_API_LATEST_RELEASE, GITHUB_RELEASES_URL } from './version';
 
 export interface ReleaseAsset {
   name: string;
@@ -46,17 +46,27 @@ export async function checkForUpdates(force = false): Promise<UpdateCheckResult>
     return { updateAvailable: false, currentVersion: APP_VERSION };
   }
 
+  const currentVersion = await getAppVersion();
+
   const now = Date.now();
   const cachedTs = localStorage.getItem('last_update_check_ts');
   const cachedData = localStorage.getItem('last_update_check_data');
 
-  // Cache for 30 minutes unless forced
+  // Cache for 30 minutes unless forced OR installed version changed since last check
   if (!force && cachedTs && cachedData && now - parseInt(cachedTs, 10) < 30 * 60 * 1000) {
     try {
-      const parsed = JSON.parse(cachedData);
-      return parsed;
+      const parsed: UpdateCheckResult = JSON.parse(cachedData);
+      if (parsed.currentVersion === currentVersion) {
+        return {
+          ...parsed,
+          updateAvailable: parsed.latestVersion ? isNewerVersion(parsed.latestVersion, currentVersion) : false,
+        };
+      }
+      // Installed version changed; clear stale cache
+      localStorage.removeItem('last_update_check_ts');
+      localStorage.removeItem('last_update_check_data');
     } catch {
-      // ignore
+      // ignore invalid cache
     }
   }
 
@@ -70,11 +80,11 @@ export async function checkForUpdates(force = false): Promise<UpdateCheckResult>
 
     if (!res.ok) {
       if (res.status === 404) {
-        return { updateAvailable: false, currentVersion: APP_VERSION };
+        return { updateAvailable: false, currentVersion };
       }
       return {
         updateAvailable: false,
-        currentVersion: APP_VERSION,
+        currentVersion,
         error: `GitHub API returned ${res.status}`,
       };
     }
@@ -83,7 +93,7 @@ export async function checkForUpdates(force = false): Promise<UpdateCheckResult>
     const rawTag = (data.tag_name || '').trim();
     const cleanTag = rawTag.replace(/^[vV]/, '');
 
-    const newer = isNewerVersion(cleanTag, APP_VERSION);
+    const newer = isNewerVersion(cleanTag, currentVersion);
 
     const assets: ReleaseAsset[] = Array.isArray(data.assets)
       ? data.assets.map((a: any) => ({
@@ -109,7 +119,7 @@ export async function checkForUpdates(force = false): Promise<UpdateCheckResult>
 
     const result: UpdateCheckResult = {
       updateAvailable: newer,
-      currentVersion: APP_VERSION,
+      currentVersion,
       latestVersion: cleanTag,
       releaseName: data.name || `Version ${rawTag}`,
       releaseUrl: data.html_url || GITHUB_RELEASES_URL,
@@ -126,7 +136,7 @@ export async function checkForUpdates(force = false): Promise<UpdateCheckResult>
   } catch (err: any) {
     return {
       updateAvailable: false,
-      currentVersion: APP_VERSION,
+      currentVersion,
       error: err.message || 'Network request failed',
     };
   }

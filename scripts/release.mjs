@@ -49,7 +49,10 @@ try {
 // 7. Auto-trigger GitHub Actions release workflow
 function getGitHubToken() {
   try {
-    const creds = execSync('echo protocol=https\nhost=github.com | git credential fill', { encoding: 'utf8' });
+    const creds = execSync('git credential fill', {
+      input: 'protocol=https\nhost=github.com\n',
+      encoding: 'utf8',
+    });
     const match = creds.match(/password=(.+)/);
     return match ? match[1].trim() : null;
   } catch {

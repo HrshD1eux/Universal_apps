@@ -1,17 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Settings, Palette, Coins, Check, Moon, Sun, RefreshCw, ExternalLink, ShieldCheck } from 'lucide-react';
 import { useSettings } from '@/context/settings-context';
 import { useLanguage } from '@/context/language-context';
 import { motion } from 'framer-motion';
-import { APP_VERSION, GITHUB_RELEASES_URL } from '@/lib/version';
+import { APP_VERSION, getAppVersion, GITHUB_RELEASES_URL } from '@/lib/version';
 
 export default function SettingsPage() {
   const { theme, setTheme, currency, setCurrency, mode, setMode } = useSettings();
   const { t } = useLanguage();
+  const [installedVersion, setInstalledVersion] = useState<string>(APP_VERSION);
+
+  useEffect(() => {
+    getAppVersion().then(setInstalledVersion).catch(() => {});
+  }, []);
 
   const themes = [
     { id: 'amber', name: t('colorAmber'), color: '#f59e0b' },
@@ -159,7 +164,7 @@ export default function SettingsPage() {
               <div className="p-4 rounded-2xl bg-background border flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">Installed Version</span>
-                  <span className="font-mono font-bold text-base text-foreground">v{APP_VERSION}</span>
+                  <span className="font-mono font-bold text-base text-foreground">v{installedVersion}</span>
                 </div>
                 <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
                   Production Build
