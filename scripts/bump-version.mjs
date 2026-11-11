@@ -53,4 +53,15 @@ if (fs.existsSync(cargoPath)) {
   fs.writeFileSync(cargoPath, cargoContent, 'utf8');
 }
 
+// 5. Update Cargo.lock
+const cargoLockPath = path.resolve(process.cwd(), 'src-tauri/Cargo.lock');
+if (fs.existsSync(cargoLockPath)) {
+  let cargoLock = fs.readFileSync(cargoLockPath, 'utf8');
+  cargoLock = cargoLock.replace(
+    /(\[\[package\]\]\r?\nname = "app"\r?\nversion = )"[^"]+"/,
+    `$1"${newVersion}"`
+  );
+  fs.writeFileSync(cargoLockPath, cargoLock, 'utf8');
+}
+
 console.log(newVersion);
