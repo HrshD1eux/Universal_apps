@@ -1,9 +1,5 @@
-import GlassmorphismGenerator from "@/components/glassmorphism-generator";
+import CssEffectsStudio from "@/components/css-effects-studio";
 
 export default function GlassmorphismPage() {
-  return (
-    <div className="container mx-auto py-12 px-6">
-      <GlassmorphismGenerator />
-    </div>
-  );
+  return <CssEffectsStudio />;
 }
