@@ -23,7 +23,7 @@ if (fs.existsSync(docsPath)) {
 execSync('git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock docs/index.html', { stdio: 'inherit' });
 
 // 4. Commit
-const commitMsg = `chore(release): bump version to ${newVersion} [skip ci]`;
+const commitMsg = `chore(release): release ${newVersion}`;
 try {
   execSync(`git commit -m "${commitMsg}"`, { stdio: 'inherit' });
 } catch {
