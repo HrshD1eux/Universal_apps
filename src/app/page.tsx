@@ -62,7 +62,9 @@ import {
   Eraser,
   Scissors,
   Waypoints,
-  ListOrdered
+  ListOrdered,
+  GitCompare,
+  Images
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import HistoryView from '@/components/history-view';
@@ -154,6 +156,8 @@ const TOOLS_DATA = [
   { id: 'tsd-solver', titleKey: 'tsdSolverTitle', descKey: 'tsdSolverDesc', href: '/tsd-solver', icon: Waypoints, category: 'math', color: 'blue' },
   { id: 'pc-rank', titleKey: 'pcRankTitle', descKey: 'pcRankDesc', href: '/pc-rank-finder', icon: ListOrdered, category: 'math', color: 'purple' },
   { id: 'boolean-lab', titleKey: 'booleanLabTitle', descKey: 'booleanLabDesc', href: '/boolean-lab', icon: Cpu, category: 'dev', color: 'cyan' },
+  { id: 'text-diff', titleKey: 'textDiffTitle', descKey: 'textDiffDesc', href: '/text-diff', icon: GitCompare, category: 'dev', color: 'indigo' },
+  { id: 'image-converter', titleKey: 'imageConverterTitle', descKey: 'imageConverterDesc', href: '/image-converter', icon: Images, category: 'utility', color: 'cyan' },
   { id: 'pdf-studio', titleKey: 'pdfStudioTitle', descKey: 'pdfStudioDesc', href: '/pdf', icon: FileText, category: 'pdf', color: 'red' },
 ];
 

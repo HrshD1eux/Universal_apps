@@ -315,6 +315,10 @@ export const translations = {
     colorNamesDesc: 'Explore a database of 10M+ color names and hex values.',
     incognitoQrTitle: 'Incognito QR Extractor',
     incognitoQrDesc: 'Extract protected ZIPs & scan QRs with 0 traces.',
+    textDiffTitle: 'Text & Code Diff',
+    textDiffDesc: 'Compare text and code files line-by-line with unified or split diff view.',
+    imageConverterTitle: 'Batch Image Converter',
+    imageConverterDesc: 'Convert and compress images to WebP, PNG, or JPG offline in batch.',
 
     // PDF Tools
     pdf_merge_title: 'PDF Merger Pro',
@@ -646,6 +650,10 @@ export const translations = {
     colorNamesDesc: 'Kisi bhi color shade ke naam, RGB aur CMYK values jaanein.',
     incognitoQrTitle: 'Incognito QR Extractor',
     incognitoQrDesc: 'Protected ZIP se secure tareeke se QR nikaalein bina trace ke.',
+    textDiffTitle: 'Text & Code Diff',
+    textDiffDesc: 'Do files ya code ka line-by-line antar dekhein.',
+    imageConverterTitle: 'Batch Image Converter',
+    imageConverterDesc: 'Photos ko WebP, PNG, ya JPG mein batch convert karein.',
 
     // PDF Tools
     pdf_merge_title: 'PDF Merger Pro',

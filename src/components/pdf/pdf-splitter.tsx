@@ -1,202 +1,382 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Scissors, FileText, Download, Loader2, Info, LayoutGrid, FileStack } from 'lucide-react';
+import { Scissors, FileText, Download, Loader2, CheckCircle2, FolderArchive, Layers } from 'lucide-react';
 import { PDFDocument } from 'pdf-lib';
-import { useToast } from '@/hooks/use-toast';
+import * as pdfjs from 'pdfjs-dist';
 import JSZip from 'jszip';
+import { notifyCompleted, notifyError } from '@/lib/notify';
+
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+
+interface PageItem {
+  pageNumber: number;
+  canvasUrl?: string;
+  isSelected: boolean;
+}
 
 export default function PdfSplitter() {
   const [file, setFile] = useState<File | null>(null);
-  const [range, setRange] = useState('');
-  const [splitAll, setSplitAll] = useState(false);
+  const [pages, setPages] = useState<PageItem[]>([]);
+  const [splitMode, setSplitMode] = useState<'selected' | 'all'>('selected');
+  const [rangeInput, setRangeInput] = useState('');
+  const [isLoadingPages, setIsLoadingPages] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { toast } = useToast();
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+  // Load PDF and render thumbnails
+  useEffect(() => {
+    if (!file) {
+      setPages([]);
+      setRangeInput('');
+      return;
     }
+
+    let isMounted = true;
+    const loadPdf = async () => {
+      setIsLoadingPages(true);
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+        const total = pdf.numPages;
+        const newPages: PageItem[] = [];
+
+        for (let i = 1; i <= total; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 0.35 });
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+
+          if (ctx) {
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            newPages.push({
+              pageNumber: i,
+              canvasUrl: canvas.toDataURL('image/jpeg', 0.8),
+              isSelected: i === 1, // default select page 1
+            });
+          }
+        }
+
+        if (isMounted) {
+          setPages(newPages);
+          setRangeInput('1');
+        }
+      } catch (err: any) {
+        console.error('Failed to load PDF:', err);
+        notifyError('Could not load PDF', err?.message || 'Check if document is encrypted.');
+      } finally {
+        if (isMounted) setIsLoadingPages(false);
+      }
+    };
+
+    loadPdf();
+    return () => {
+      isMounted = false;
+    };
+  }, [file]);
+
+  const updateRangeFromSelection = (updated: PageItem[]) => {
+    const selectedNums = updated.filter((p) => p.isSelected).map((p) => p.pageNumber);
+    setRangeInput(selectedNums.join(', '));
   };
 
-  const splitPdf = async () => {
-    if (!file || (!range && !splitAll)) {
-      toast({ title: "Input required", description: "Please enter a page range or select 'Split all pages'.", variant: "destructive" });
+  const togglePageSelection = (pageNum: number) => {
+    setPages((prev) => {
+      const next = prev.map((p) =>
+        p.pageNumber === pageNum ? { ...p, isSelected: !p.isSelected } : p
+      );
+      updateRangeFromSelection(next);
+      return next;
+    });
+  };
+
+  const handleRangeInputChange = (text: string) => {
+    setRangeInput(text);
+    const toSelect = new Set<number>();
+    const parts = text.split(',').map((p) => p.trim());
+    for (const part of parts) {
+      if (part.includes('-')) {
+        const [start, end] = part.split('-').map(Number);
+        if (!isNaN(start) && !isNaN(end)) {
+          for (let i = start; i <= end; i++) toSelect.add(i);
+        }
+      } else {
+        const p = Number(part);
+        if (!isNaN(p)) toSelect.add(p);
+      }
+    }
+
+    setPages((prev) =>
+      prev.map((p) => ({
+        ...p,
+        isSelected: toSelect.has(p.pageNumber),
+      }))
+    );
+  };
+
+  const selectAll = () => {
+    setPages((prev) => {
+      const next = prev.map((p) => ({ ...p, isSelected: true }));
+      updateRangeFromSelection(next);
+      return next;
+    });
+  };
+
+  const selectNone = () => {
+    setPages((prev) => {
+      const next = prev.map((p) => ({ ...p, isSelected: false }));
+      updateRangeFromSelection(next);
+      return next;
+    });
+  };
+
+  const selectedCount = pages.filter((p) => p.isSelected).length;
+
+  const handleSplit = async () => {
+    if (!file || pages.length === 0) return;
+
+    if (splitMode === 'selected' && selectedCount === 0) {
+      notifyError('No Pages Selected', 'Please select at least one page to extract.');
       return;
     }
 
     setIsProcessing(true);
     try {
       const fileBytes = await file.arrayBuffer();
-      const pdf = await PDFDocument.load(fileBytes);
+      const pdf = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
       const totalPages = pdf.getPageCount();
-      const zip = new JSZip();
-      
-      if (splitAll) {
+
+      if (splitMode === 'all') {
+        // Split every page into separate PDF inside a ZIP
+        const zip = new JSZip();
         for (let i = 0; i < totalPages; i++) {
           const newPdf = await PDFDocument.create();
           const [page] = await newPdf.copyPages(pdf, [i]);
           newPdf.addPage(page);
-          const pdfBytes = await newPdf.save();
-          zip.file(`page_${i + 1}.pdf`, pdfBytes);
+          const bytes = await newPdf.save();
+          zip.file(`page_${i + 1}.pdf`, bytes);
         }
-        const content = await zip.generateAsync({ type: 'blob' });
-        const url = URL.createObjectURL(content);
+
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(zipBlob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `split_all_${file.name.replace('.pdf', '')}.zip`;
+        link.download = `split_all_${file.name.replace(/\.pdf$/i, '')}.zip`;
         link.click();
+
+        notifyCompleted(
+          'Split All Completed',
+          `Exported ${totalPages} individual page PDFs in a ZIP archive.`
+        );
       } else {
-        const ranges = range.split(',').map(r => r.trim()).filter(r => r.length > 0);
-        
-        if (ranges.length === 1 && !ranges[0].includes('-') && !ranges[0].includes(',')) {
-          // Simple single page extract
-          const pageNum = Number(ranges[0]);
-          if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) throw new Error("Invalid page number");
-          
-          const newPdf = await PDFDocument.create();
-          const [page] = await newPdf.copyPages(pdf, [pageNum - 1]);
-          newPdf.addPage(page);
-          const pdfBytes = await newPdf.save();
-          const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `page_${pageNum}_${file.name}`;
-          link.click();
-        } else if (ranges.length === 1) {
-          // Single complex range (e.g. 1-5 or 1,3,5) into ONE file
-          const pagesToExtract: number[] = [];
-          const parts = ranges[0].split('-').map(Number);
-          if (parts.length === 2) {
-             for (let i = parts[0]; i <= parts[1]; i++) {
-                if (i >= 1 && i <= totalPages) pagesToExtract.push(i - 1);
-             }
-          } else {
-             const p = Number(ranges[0]);
-             if (!isNaN(p) && p >= 1 && p <= totalPages) pagesToExtract.push(p - 1);
-          }
+        // Extract selected pages into a single new PDF
+        const selectedIndices = pages
+          .filter((p) => p.isSelected)
+          .map((p) => p.pageNumber - 1);
 
-          const newPdf = await PDFDocument.create();
-          const copiedPages = await newPdf.copyPages(pdf, pagesToExtract);
-          copiedPages.forEach(p => newPdf.addPage(p));
-          const pdfBytes = await newPdf.save();
-          const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `split_${file.name}`;
-          link.click();
-        } else {
-          // MULTIPLE RANGES -> Multiple files in a ZIP
-          for (let idx = 0; idx < ranges.length; idx++) {
-            const r = ranges[idx];
-            const pagesToExtract: number[] = [];
-            if (r.includes('-')) {
-              const [start, end] = r.split('-').map(Number);
-              for (let i = start; i <= end; i++) {
-                if (i >= 1 && i <= totalPages) pagesToExtract.push(i - 1);
-              }
-            } else {
-              const p = Number(r);
-              if (!isNaN(p) && p >= 1 && p <= totalPages) pagesToExtract.push(p - 1);
-            }
+        const newPdf = await PDFDocument.create();
+        const copiedPages = await newPdf.copyPages(pdf, selectedIndices);
+        copiedPages.forEach((p) => newPdf.addPage(p));
 
-            if (pagesToExtract.length > 0) {
-              const newPdf = await PDFDocument.create();
-              const copiedPages = await newPdf.copyPages(pdf, pagesToExtract);
-              copiedPages.forEach(p => newPdf.addPage(p));
-              const pdfBytes = await newPdf.save();
-              zip.file(`split_part_${idx + 1}_pages_${r}.pdf`, pdfBytes);
-            }
-          }
-          
-          const content = await zip.generateAsync({ type: 'blob' });
-          const url = URL.createObjectURL(content);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `multiple_splits_${file.name.replace('.pdf', '')}.zip`;
-          link.click();
-        }
+        const bytes = await newPdf.save();
+        const blob = new Blob([bytes as any], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `extracted_${file.name}`;
+        link.click();
+
+        notifyCompleted(
+          'Pages Extracted Successfully',
+          `Created new document containing ${selectedCount} selected page(s).`
+        );
       }
-      
-      toast({ title: "Success", description: "PDF split successfully!" });
     } catch (err: any) {
-      toast({ title: "Split failed", description: err.message || "Invalid range or file.", variant: "destructive" });
+      console.error(err);
+      notifyError('Split Failed', err?.message || 'Error processing PDF document.');
     } finally {
       setIsProcessing(false);
     }
   };
 
   return (
-    <Card className="max-w-2xl mx-auto border-none shadow-2xl bg-card/80 backdrop-blur-xl">
+    <Card className="max-w-5xl mx-auto border-none shadow-2xl bg-card/80 backdrop-blur-xl">
       <CardHeader className="text-center p-8">
-        <div className="mx-auto w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-500 mb-4">
+        <div className="mx-auto w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-600 mb-4">
           <Scissors className="w-8 h-8" />
         </div>
-        <CardTitle className="text-3xl font-black">PDF Splitter & Extractor</CardTitle>
-        <CardDescription>Extract pages or split into multiple separate files.</CardDescription>
+        <CardTitle className="text-3xl font-black">Visual PDF Splitter & Extractor</CardTitle>
+        <CardDescription>
+          Extract selected pages into a new document or split every page into a ZIP.
+        </CardDescription>
       </CardHeader>
       <CardContent className="p-8 space-y-8">
         {!file ? (
-          <div className="border-4 border-dashed border-muted rounded-[2rem] p-12 text-center hover:border-orange-500/50 transition-colors relative">
-            <input type="file" accept="application/pdf" onChange={handleFileSelect} className="absolute inset-0 opacity-0 cursor-pointer" />
-            <Scissors className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-            <p className="font-bold text-muted-foreground">Click to select PDF to split</p>
+          <div className="border-4 border-dashed border-muted rounded-[2rem] p-12 text-center hover:border-blue-500/50 transition-colors relative cursor-pointer group">
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => e.target.files && setFile(e.target.files[0])}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            />
+            <Scissors className="w-14 h-14 text-blue-500/40 group-hover:text-blue-500 transition-colors mx-auto mb-4" />
+            <p className="font-black text-lg text-foreground">Select PDF to Split or Extract</p>
+            <p className="text-xs text-muted-foreground mt-1">Interactive page picker with instant export</p>
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="p-6 bg-muted/30 rounded-3xl border-2 flex items-center gap-4">
-               <FileText className="w-10 h-10 text-orange-500" />
-               <div className="flex-1 overflow-hidden">
-                  <p className="font-black truncate">{file.name}</p>
-                  <Button variant="link" onClick={() => setFile(null)} className="p-0 h-auto text-xs text-rose-500 font-bold uppercase">Change File</Button>
-               </div>
+            <div className="p-4 bg-muted/40 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <FileText className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                <div>
+                  <span className="font-bold truncate text-sm block">{file.name}</span>
+                  <span className="text-[11px] text-muted-foreground font-semibold">
+                    Total: {pages.length} Pages • {splitMode === 'all' ? 'Split Every Page' : `Selected ${selectedCount} Page(s)`}
+                  </span>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFile(null)}
+                className="text-xs text-rose-500 font-bold uppercase hover:bg-rose-500/10"
+              >
+                Change PDF
+              </Button>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3 bg-muted/20 p-4 rounded-2xl border-2">
-                <Checkbox id="split-all-new" checked={splitAll} onCheckedChange={(v) => setSplitAll(!!v)} className="w-5 h-5" />
-                <Label htmlFor="split-all-new" className="text-sm font-black flex items-center gap-2 cursor-pointer">
-                  <LayoutGrid className="w-4 h-4 text-orange-500" />
-                  Split every page into a separate file
-                </Label>
-              </div>
+            {/* Split Mode Toggle */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSplitMode('selected')}
+                className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                  splitMode === 'selected'
+                    ? 'border-blue-600 bg-blue-600/5 shadow-md shadow-blue-500/10'
+                    : 'border-muted hover:border-blue-400/40 bg-card'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <Layers className="w-4 h-4 text-blue-600" />
+                  <span className="font-bold text-sm">Extract Selected Pages</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Combine selected pages into a single new PDF document.
+                </p>
+              </button>
 
-              {!splitAll && (
-                <div className="space-y-3">
-                  <div className="flex justify-between items-end">
-                    <label className="text-sm font-black uppercase tracking-widest text-primary/60">Page Ranges</label>
-                    <span className="text-[10px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-full flex items-center gap-1">
-                      <FileStack className="w-3 h-3" /> Creates multiple files
-                    </span>
+              <button
+                type="button"
+                onClick={() => setSplitMode('all')}
+                className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                  splitMode === 'all'
+                    ? 'border-blue-600 bg-blue-600/5 shadow-md shadow-blue-500/10'
+                    : 'border-muted hover:border-blue-400/40 bg-card'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <FolderArchive className="w-4 h-4 text-blue-600" />
+                  <span className="font-bold text-sm">Split Every Page (ZIP)</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Save every page as its own individual PDF in a ZIP bundle.
+                </p>
+              </button>
+            </div>
+
+            {/* Interactive Thumbnail Picker if 'selected' mode */}
+            {splitMode === 'selected' && (
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-muted/20 border rounded-2xl">
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={selectAll} className="rounded-xl font-bold text-xs">
+                      Select All
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={selectNone} className="rounded-xl font-bold text-xs">
+                      Deselect All
+                    </Button>
                   </div>
-                  <Input 
-                    placeholder="e.g. 1-3, 5, 10-15" 
-                    value={range} 
-                    onChange={(e) => setRange(e.target.value)}
-                    className="h-14 rounded-2xl border-2 font-mono text-lg px-6"
-                  />
-                  <div className="flex items-start gap-2 p-4 bg-orange-500/5 rounded-2xl text-[10px] text-muted-foreground font-medium leading-tight">
-                     <Info className="w-4 h-4 text-orange-500 shrink-0" />
-                     <p>Use commas to create <strong>separate PDF files</strong> (e.g. 1-3, 5 will download 2 files). Individual pages or ranges are supported.</p>
+
+                  <div className="w-full sm:w-64">
+                    <Input
+                      placeholder="e.g. 1, 3-5"
+                      value={rangeInput}
+                      onChange={(e) => handleRangeInputChange(e.target.value)}
+                      className="h-9 rounded-xl font-mono text-xs"
+                    />
                   </div>
                 </div>
-              )}
-            </div>
 
-            <Button 
-              className="w-full h-16 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white font-black text-lg gap-2 shadow-xl"
-              disabled={(!range && !splitAll) || isProcessing}
-              onClick={splitPdf}
+                {isLoadingPages ? (
+                  <div className="py-16 text-center space-y-3">
+                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
+                    <p className="font-bold text-sm text-muted-foreground">Loading page thumbnails...</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[500px] overflow-y-auto p-2 scrollbar-thin">
+                    {pages.map((p) => (
+                      <div
+                        key={p.pageNumber}
+                        onClick={() => togglePageSelection(p.pageNumber)}
+                        className={`group relative p-3 rounded-2xl border-2 transition-all flex flex-col items-center bg-card shadow-sm cursor-pointer select-none ${
+                          p.isSelected
+                            ? 'border-blue-600 bg-blue-500/10 shadow-md shadow-blue-500/10'
+                            : 'border-muted opacity-60 hover:opacity-100 hover:border-blue-400'
+                        }`}
+                      >
+                        <div className="w-full flex items-center justify-between text-[11px] font-bold text-muted-foreground mb-2">
+                          <span>Pg {p.pageNumber}</span>
+                          {p.isSelected ? (
+                            <span className="text-blue-600 font-extrabold flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Selected
+                            </span>
+                          ) : (
+                            <span className="opacity-40 text-[10px]">Excluded</span>
+                          )}
+                        </div>
+
+                        <div className="w-full h-36 flex items-center justify-center overflow-hidden bg-muted/30 rounded-xl p-1 relative">
+                          {p.canvasUrl ? (
+                            <img
+                              src={p.canvasUrl}
+                              alt={`Page ${p.pageNumber}`}
+                              className="max-h-full max-w-full object-contain drop-shadow-sm"
+                            />
+                          ) : (
+                            <div className="text-xs text-muted-foreground">Pg {p.pageNumber}</div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <Button
+              className="w-full h-16 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-lg gap-2 shadow-xl shadow-blue-600/20 hover:shadow-2xl transition-all"
+              disabled={isProcessing || isLoadingPages || (splitMode === 'selected' && selectedCount === 0)}
+              onClick={handleSplit}
             >
-              {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Download className="w-6 h-6" />}
-              {splitAll ? 'SPLIT ALL AND DOWNLOAD ZIP' : range.includes(',') ? 'EXTRACT MULTIPLE FILES (ZIP)' : 'EXTRACT PAGES'}
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <span>PROCESSING SPLIT...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-6 h-6" />
+                  <span>
+                    {splitMode === 'all'
+                      ? `SPLIT ALL ${pages.length} PAGES TO ZIP`
+                      : `EXTRACT ${selectedCount} PAGE(S) & DOWNLOAD`}
+                  </span>
+                </>
+              )}
             </Button>
           </div>
         )}
