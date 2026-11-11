@@ -1,6 +1,6 @@
 {
   "name": "nextn",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "description": "A sleek, modern, and intuitive desktop application featuring a collection of essential calculators. Built for speed and simplicity.",
   "scripts": {
